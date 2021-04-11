@@ -13,6 +13,7 @@ const base = {
   ],
   rules: {
     'simple-import-sort/exports': 'error',
+    'simple-import-sort/imports': 'error',
     'sort-destructure-keys/sort-destructure-keys': 'error',
     'sort-keys-fix/sort-keys-fix': 'error',
     'unused-imports/no-unused-imports': 'error',
@@ -33,6 +34,7 @@ const ts = Object.assign({}, base, {
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
+    'plugin:typescript-sort-keys/recommended',
     'prettier',
   ],
   files: ['*.ts', '*.tsx'],
