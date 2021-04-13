@@ -11,13 +11,15 @@ import jwt from 'jsonwebtoken'
 import config from '~/config'
 import schema from '~/schema'
 
+type TDecodedJWT = string | { userId: string }
+
 function getUserId(token: string) {
-  const decoded = jwt.verify(token, config.jwtSecret) as TID | string
+  const decoded = jwt.verify(token, config.jwtSecret) as TDecodedJWT
   if (typeof decoded === 'string') {
     new AuthenticationError(decoded)
     return
   }
-  return decoded._id
+  return decoded.userId
 }
 
 function getOperationName(query: string) {

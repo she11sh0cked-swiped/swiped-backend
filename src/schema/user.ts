@@ -4,9 +4,14 @@ import { schemaComposer } from 'graphql-compose'
 import jwt from 'jsonwebtoken'
 
 import config from '~/config'
+import {
+  MutationUser_LoginArgs,
+  MutationUser_RegisterArgs,
+  User,
+} from '~/types/generated'
 import Schema from '~/utils/schema'
 
-type TUserDB = TUser & {
+type TUserDB = User & {
   password: string
 }
 
@@ -21,15 +26,8 @@ const user = new Schema<TUserDB>(
 
 const userTokenTC = user.tc.clone('userToken').addFields({ token: 'String!' })
 
-const getToken = ({ _id, username }: TUser) =>
-  jwt.sign(
-    {
-      _id,
-      username,
-    },
-    config.jwtSecret,
-    { expiresIn: '1d' }
-  )
+const getToken = (userId: string) =>
+  jwt.sign({ userId }, config.jwtSecret, { expiresIn: '1d' })
 
 user.addFields('query', {
   findMe: schemaComposer.createResolver({
@@ -44,10 +42,7 @@ user.addFields('query', {
 })
 
 user.addFields('mutation', {
-  login: schemaComposer.createResolver<
-    unknown,
-    Pick<TUserDB, 'password' | 'username'>
-  >({
+  login: schemaComposer.createResolver<unknown, MutationUser_LoginArgs>({
     args: { password: 'String!', username: 'String!' },
     kind: 'mutation',
     name: 'user_login',
@@ -59,7 +54,7 @@ user.addFields('mutation', {
       const isMatch = await bcrypt.compare(password, dbUser.password)
       if (!isMatch) throw new AuthenticationError('wrong password!')
 
-      const token = getToken(dbUser)
+      const token = getToken(dbUser.id)
 
       return { ...dbUser.toObject(), token }
     },
@@ -71,22 +66,20 @@ user.addFields('mutation', {
       newResolver.addArgs({ password: 'String!' })
       return newResolver
     })
-    .wrapResolve<unknown, { password: string; record: TUser }>(
-      (next) => async (rp) => {
-        const dbUser = await user.model.findOne({
-          username: rp.args.record.username,
-        })
+    .wrapResolve<unknown, MutationUser_RegisterArgs>((next) => async (rp) => {
+      const dbUser = await user.model.findOne({
+        username: rp.args.record.username,
+      })
 
-        if (dbUser) throw new ValidationError('user already exists!')
+      if (dbUser) throw new ValidationError('user already exists!')
 
-        rp.beforeRecordMutate = async (doc: TUserDB) => {
-          doc.password = await bcrypt.hash(rp.args.password, 10)
-          return doc
-        }
-
-        return next(rp) as Promise<TUser>
+      rp.beforeRecordMutate = async (doc: TUserDB) => {
+        doc.password = await bcrypt.hash(rp.args.password, 10)
+        return doc
       }
-    ),
+
+      return next(rp) as Promise<User>
+    }),
 })
 
 export default user
