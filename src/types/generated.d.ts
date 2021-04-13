@@ -26,6 +26,7 @@ export type Scalars = {
 
 export type CreateOneuserInput = {
   username: Scalars['String'];
+  password: Scalars['String'];
 };
 
 export type CreateOneuserPayload = {
@@ -69,7 +70,6 @@ export type MutationUser_LoginArgs = {
 
 export type MutationUser_RegisterArgs = {
   record: CreateOneuserInput;
-  password: Scalars['String'];
 };
 
 export type Query = {

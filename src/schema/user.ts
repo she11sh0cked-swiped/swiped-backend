@@ -32,7 +32,7 @@ const userTokenTC = schemaComposer.createObjectTC({
 const getToken = (userId: string) =>
   jwt.sign({ userId }, config.jwtSecret, { expiresIn: '1d' })
 
-user.addFields('query', {
+user.addFields('queries', {
   findMe: schemaComposer.createResolver({
     kind: 'query',
     name: 'user_findMe',
@@ -44,7 +44,7 @@ user.addFields('query', {
   }),
 })
 
-user.addFields('mutation', {
+user.addFields('mutations', {
   login: schemaComposer.createResolver<unknown, MutationUser_LoginArgs>({
     args: { password: 'String!', username: 'String!' },
     kind: 'mutation',
@@ -66,7 +66,9 @@ user.addFields('mutation', {
   register: user.tc.mongooseResolvers
     .createOne()
     .wrap((newResolver) => {
-      newResolver.addArgs({ password: 'String!' })
+      const recordArg = newResolver.getArgITC('record')
+      recordArg.addFields({ password: 'String!' })
+      newResolver.setArg('record', recordArg.getTypeNonNull())
       return newResolver
     })
     .wrapResolve<unknown, MutationUser_RegisterArgs>((next) => async (rp) => {
@@ -77,7 +79,7 @@ user.addFields('mutation', {
       if (dbUser) throw new ValidationError('user already exists!')
 
       rp.beforeRecordMutate = async (doc: TUserDB) => {
-        doc.password = await bcrypt.hash(rp.args.password, 10)
+        doc.password = await bcrypt.hash(rp.args.record.password, 10)
         return doc
       }
 
