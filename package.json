@@ -11,6 +11,9 @@
     "mongoose": "^5.12.3"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "1.21.3",
+    "@graphql-codegen/typescript": "1.21.1",
+    "@graphql-codegen/typescript-mongodb": "1.18.1",
     "@types/bcrypt": "^3.0.1",
     "@types/jsonwebtoken": "^8.5.1",
     "@typescript-eslint/eslint-plugin": "^4.21.0",
@@ -40,6 +43,7 @@
   "repository": "git@github.com:she11sh0cked/swiped-backend.git",
   "scripts": {
     "build": "webpack --mode=production",
+    "codegen": "graphql-codegen --config codegen.yml",
     "start": "npm-run-all --parallel watch:start watch:build",
     "watch:build": "webpack --watch --mode=development",
     "watch:start": "nodemon --inspect"

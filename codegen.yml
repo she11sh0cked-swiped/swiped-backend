@@ -1,0 +1,13 @@
+config:
+  scalars:
+    MongoID: ObjectID
+
+generates:
+  src/types/generated.d.ts:
+    plugins:
+      - typescript-mongodb
+      - typescript
+
+overwrite: true
+
+schema: http://localhost:4000/graphql
