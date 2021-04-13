@@ -4,6 +4,7 @@
       "name": "Attach by Process ID",
       "processId": "${command:PickProcess}",
       "request": "attach",
+      "restart": true,
       "skipFiles": ["<node_internals>/**"],
       "type": "pwa-node"
     }
