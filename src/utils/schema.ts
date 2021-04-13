@@ -1,5 +1,9 @@
 import { ObjectTypeComposer, Resolver } from 'graphql-compose'
-import { composeMongoose, GenerateResolverType } from 'graphql-compose-mongoose'
+import {
+  composeMongoose,
+  ComposeMongooseOpts,
+  GenerateResolverType,
+} from 'graphql-compose-mongoose'
 import mongoose from 'mongoose'
 
 type TDocument<TSchema> = mongoose.Document & TSchema
@@ -9,6 +13,11 @@ type IFieldMap = Record<string, Resolver>
 interface IFields {
   mutation: IFieldMap
   query: IFieldMap
+}
+
+interface IOptions {
+  compose?: ComposeMongooseOpts
+  schema?: mongoose.SchemaOptions
 }
 
 class Schema<
@@ -28,12 +37,12 @@ class Schema<
   constructor(
     public name: string,
     definition: mongoose.SchemaDefinition,
-    options: mongoose.SchemaOptions = {}
+    options: IOptions = {}
   ) {
     this.name = name
-    this.schema = new mongoose.Schema(definition, options)
+    this.schema = new mongoose.Schema(definition, options.schema)
     this.model = mongoose.model<TDocument<TSchema>>(this.name, this.schema)
-    this.tc = composeMongoose<TDocument<TSchema>>(this.model)
+    this.tc = composeMongoose<TDocument<TSchema>>(this.model, options.compose)
   }
 
   addFields(type: keyof IFields, fields: IFieldMap): void {
