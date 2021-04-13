@@ -111,8 +111,6 @@ export type User = {
 
 export type UserToken = {
   __typename?: 'userToken';
-  username: Scalars['String'];
-  _id: Scalars['MongoID'];
   token: Scalars['String'];
 };
 

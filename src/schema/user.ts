@@ -24,7 +24,10 @@ const user = new Schema<TUserDB>(
   { compose: { removeFields: ['password'] } }
 )
 
-const userTokenTC = user.tc.clone('userToken').addFields({ token: 'String!' })
+const userTokenTC = schemaComposer.createObjectTC({
+  fields: { token: 'String!' },
+  name: 'userToken',
+})
 
 const getToken = (userId: string) =>
   jwt.sign({ userId }, config.jwtSecret, { expiresIn: '1d' })
@@ -56,7 +59,7 @@ user.addFields('mutation', {
 
       const token = getToken(dbUser.id)
 
-      return { ...dbUser.toObject(), token }
+      return { token }
     },
     type: userTokenTC,
   }),
