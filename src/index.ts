@@ -1,2 +1,2 @@
 import './database'
-import './server/api'
+import './server'

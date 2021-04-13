@@ -1,7 +1,15 @@
-import { ApolloServer } from 'apollo-server'
+import { ApolloServer } from 'apollo-server-express'
+import { Express } from 'express'
 
-const server = new ApolloServer({})
+import schema from '~/schema'
 
-void server.listen().then(({ url }) => {
-  console.log(`🚀  Server ready at ${url}`)
+const api = new ApolloServer({
+  schema: schema,
 })
+
+function applyApi(app: Express): void {
+  api.applyMiddleware({ app })
+}
+
+export { applyApi }
+export default api
