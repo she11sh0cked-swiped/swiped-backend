@@ -11,8 +11,9 @@ type TDocument<TSchema> = mongoose.Document & TSchema
 type IFieldMap = Record<string, Resolver>
 
 interface IFields {
-  mutation: IFieldMap
-  query: IFieldMap
+  mutations: IFieldMap
+  queries: IFieldMap
+  subscriptions: IFieldMap
 }
 
 interface IOptions {
@@ -24,8 +25,9 @@ class Schema<
   TSchema extends Record<string, unknown> = Record<string, unknown>
 > {
   #fields: IFields = {
-    mutation: {},
-    query: {},
+    mutations: {},
+    queries: {},
+    subscriptions: {},
   }
 
   schema: mongoose.Schema
