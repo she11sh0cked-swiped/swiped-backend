@@ -1,14 +1,18 @@
 {
   "dependencies": {
     "apollo-server-express": "^2.22.2",
+    "bcrypt": "^5.0.1",
     "dotenv-defaults": "^2.0.1",
     "express": "^4.17.1",
     "graphql": "^15.5.0",
     "graphql-compose": "^7.25.1",
     "graphql-compose-mongoose": "^9.2.2",
+    "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.12.3"
   },
   "devDependencies": {
+    "@types/bcrypt": "^3.0.1",
+    "@types/jsonwebtoken": "^8.5.1",
     "@typescript-eslint/eslint-plugin": "^4.21.0",
     "@typescript-eslint/parser": "^4.21.0",
     "eslint": "^7.24.0",
