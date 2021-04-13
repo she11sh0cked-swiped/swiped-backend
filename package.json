@@ -35,10 +35,10 @@
   "name": "swiped-backend",
   "repository": "git@github.com:she11sh0cked/swiped-backend.git",
   "scripts": {
-    "build": "webpack",
+    "build": "webpack --mode=production",
     "start": "npm-run-all --parallel watch:start watch:build",
-    "watch:build": "webpack --watch",
-    "watch:start": "nodemon"
+    "watch:build": "webpack --watch --mode=development",
+    "watch:start": "nodemon --inspect"
   },
   "version": "0.1.0"
 }
