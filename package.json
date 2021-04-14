@@ -43,9 +43,10 @@
   "repository": "git@github.com:she11sh0cked/swiped-backend.git",
   "scripts": {
     "build": "webpack --mode=production",
-    "codegen": "graphql-codegen --config codegen.yml",
-    "start": "npm-run-all --parallel watch:start watch:build",
+    "codegen": "graphql-codegen",
+    "start": "npm-run-all --parallel --print-label watch:build watch:start watch:codegen",
     "watch:build": "webpack --watch --mode=development",
+    "watch:codegen": "graphql-codegen --watch",
     "watch:start": "nodemon --inspect"
   },
   "version": "0.1.0"
