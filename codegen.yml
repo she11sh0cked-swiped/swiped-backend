@@ -5,7 +5,8 @@ config:
 generates:
   src/types/api.d.ts:
     plugins:
-      - typescript-mongodb
+      - add:
+          content: import { ObjectID } from 'mongodb'
       - typescript
 
 overwrite: true

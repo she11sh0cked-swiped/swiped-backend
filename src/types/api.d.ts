@@ -1,8 +1,8 @@
+import { ObjectID } from 'mongodb'
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-import { ObjectID } from 'mongodb';
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -15,14 +15,6 @@ export type Scalars = {
   /** The `ID` scalar type represents a unique MongoDB identifier in collection. MongoDB by default use 12-byte ObjectId value (https://docs.mongodb.com/manual/reference/bson-types/#objectid). But MongoDB also may accepts string or integer as correct values for _id field. */
   MongoID: ObjectID;
 };
-
-
-
-
-
-
-
-
 
 export type CreateOneuserInput = {
   username: Scalars['String'];
@@ -112,9 +104,4 @@ export type User = {
 export type UserToken = {
   __typename?: 'userToken';
   token: Scalars['String'];
-};
-
-export type AdditionalEntityFields = {
-  path?: Maybe<Scalars['String']>;
-  type?: Maybe<Scalars['String']>;
 };
