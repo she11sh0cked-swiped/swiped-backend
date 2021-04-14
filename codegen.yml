@@ -3,7 +3,7 @@ config:
     MongoID: ObjectID
 
 generates:
-  src/types/api.d.ts:
+  src/types/api.ts:
     plugins:
       - add:
           content: import { ObjectID } from 'mongodb'
