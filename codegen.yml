@@ -3,7 +3,7 @@ config:
     MongoID: ObjectID
 
 generates:
-  src/types/generated.d.ts:
+  src/types/api.d.ts:
     plugins:
       - typescript-mongodb
       - typescript

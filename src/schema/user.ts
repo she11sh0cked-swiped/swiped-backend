@@ -8,7 +8,7 @@ import {
   MutationUser_LoginArgs,
   MutationUser_RegisterArgs,
   User,
-} from '~/types/generated'
+} from '~/types/api'
 import Schema from '~/utils/schema'
 
 type TUserDB = User & {
