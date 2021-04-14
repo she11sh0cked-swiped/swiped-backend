@@ -44,7 +44,7 @@
   "scripts": {
     "build": "webpack --mode=production",
     "codegen": "graphql-codegen",
-    "start": "npm-run-all --parallel --print-label watch:build watch:start watch:codegen",
+    "start": "npm-run-all --parallel --print-label watch:*",
     "watch:build": "webpack --watch --mode=development",
     "watch:codegen": "graphql-codegen --watch",
     "watch:start": "nodemon --inspect"
