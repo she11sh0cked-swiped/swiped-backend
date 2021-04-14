@@ -46,7 +46,7 @@
     "codegen": "graphql-codegen",
     "start": "npm-run-all --parallel --print-label watch:*",
     "watch:build": "webpack --watch --mode=development",
-    "watch:codegen": "graphql-codegen --watch",
+    "watch:codegen": "graphql-codegen --watch build/**/*.js",
     "watch:start": "nodemon --inspect"
   },
   "version": "0.1.0"
