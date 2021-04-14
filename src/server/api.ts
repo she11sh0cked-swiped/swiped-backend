@@ -2,14 +2,14 @@ import {
   ApolloServer,
   AuthenticationError,
   ExpressContext,
-  gql,
 } from 'apollo-server-express'
 import { Express } from 'express'
-import { FragmentSpreadNode, OperationDefinitionNode } from 'graphql'
 import jwt from 'jsonwebtoken'
 
 import config from '~/config'
+import logging from '~/logging'
 import schema from '~/schema'
+import { getOperationName } from '~/utils/graphql'
 
 type TDecodedJWT = string | { userId: string }
 
@@ -20,15 +20,6 @@ function getUserId(token: string) {
     return
   }
   return decoded.userId
-}
-
-function getOperationName(query: string) {
-  const ast = gql(query)
-  const operation = ast.definitions[0] as OperationDefinitionNode
-  const fragment = operation.selectionSet.selections[0] as FragmentSpreadNode
-  const name = fragment.name.value
-
-  return name
 }
 
 const whitelist = ['user_login', 'user_register', '__schema']
@@ -56,6 +47,7 @@ const api = new ApolloServer({
 })
 
 function applyApi(app: Express): void {
+  app.use(logging.api)
   api.applyMiddleware({ app })
 }
 
