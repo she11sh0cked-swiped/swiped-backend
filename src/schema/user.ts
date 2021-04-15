@@ -29,8 +29,8 @@ const userWithTokenTC = user.tc
   .clone('userWithToken')
   .addFields({ token: 'String!' })
 
-const getToken = (userId: string) =>
-  jwt.sign({ userId }, config.jwtSecret, { expiresIn: '1d' })
+const getToken = ({ _id }: User) =>
+  jwt.sign({ userId: _id }, config.jwtSecret, { expiresIn: '1d' })
 
 const registerUser = (
   username: string,
@@ -74,7 +74,7 @@ user.addFields('mutations', {
       const isMatch = await bcrypt.compare(password, dbUser.password)
       if (!isMatch) throw new AuthenticationError('wrong password!')
 
-      const token = getToken(dbUser.id)
+      const token = getToken(dbUser)
 
       return { ...dbUser.toObject(), token }
     },
@@ -91,7 +91,7 @@ user.addFields('mutations', {
 
       const newDbUser = await registerUser(username, password)
 
-      const token = getToken(newDbUser.id)
+      const token = getToken(newDbUser)
 
       return { ...newDbUser.toObject(), token }
     },
