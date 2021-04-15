@@ -38,10 +38,19 @@ export type Query = {
   user_findMe?: Maybe<User>;
 };
 
+export type Group = {
+  __typename?: 'group';
+  membersId?: Maybe<Array<Maybe<Scalars['MongoID']>>>;
+  name: Scalars['String'];
+  ownerId: Scalars['MongoID'];
+  _id: Scalars['MongoID'];
+};
+
 export type User = {
   __typename?: 'user';
   username: Scalars['String'];
   _id: Scalars['MongoID'];
+  groups?: Maybe<Array<Maybe<Group>>>;
 };
 
 export type UserWithToken = {

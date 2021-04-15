@@ -8,7 +8,7 @@ import {
   MutationUser_LoginArgs,
   MutationUser_RegisterArgs,
   User,
-} from '~/types/api'
+} from '~/types/api.generated'
 import { TDocument } from '~/types/db'
 import Schema from '~/utils/schema'
 
