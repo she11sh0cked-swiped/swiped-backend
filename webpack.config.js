@@ -3,6 +3,7 @@ const nodeExternals = require('webpack-node-externals')
 const path = require('path')
 const SimpleProgressWebpackPlugin = require('simple-progress-webpack-plugin')
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin')
+const CircularDependencyPlugin = require('circular-dependency-plugin')
 
 const { NODE_ENV = 'production' } = process.env
 
@@ -33,8 +34,9 @@ module.exports = {
     path: path.resolve(__dirname, 'build'),
   },
   plugins: [
-    new ForkTsCheckerWebpackPlugin(),
     new SimpleProgressWebpackPlugin(),
+    new ForkTsCheckerWebpackPlugin(),
+    new CircularDependencyPlugin({ failOnError: true }),
   ],
   resolve: {
     extensions: ['.ts', '.js'],
