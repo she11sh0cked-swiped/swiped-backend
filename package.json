@@ -20,6 +20,7 @@
     "@types/morgan": "^1.9.2",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
+    "circular-dependency-plugin": "^5.2.2",
     "eslint": "^7.24.0",
     "eslint-config-prettier": "^8.2.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
