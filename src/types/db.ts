@@ -1,3 +1,3 @@
-import { Document } from 'mongoose'
+import { Document, ObjectId } from 'mongoose'
 
-export type TDocument<TSchema> = Document & TSchema
+export type TDocument<TSchema> = Document<ObjectId> & TSchema
