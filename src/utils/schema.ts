@@ -6,7 +6,7 @@ import {
 } from 'graphql-compose-mongoose'
 import mongoose from 'mongoose'
 
-type TDocument<TSchema> = mongoose.Document & TSchema
+import { TDocument } from '~/types/db'
 
 type IFieldMap = Record<string, Resolver>
 

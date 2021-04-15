@@ -9,6 +9,7 @@ import {
   MutationUser_RegisterArgs,
   User,
 } from '~/types/api'
+import { TDocument } from '~/types/db'
 import Schema from '~/utils/schema'
 
 type TUserDB = User & {
@@ -24,13 +25,29 @@ const user = new Schema<TUserDB>(
   { compose: { removeFields: ['password'] } }
 )
 
-const userTokenTC = schemaComposer.createObjectTC({
-  fields: { token: 'String!' },
-  name: 'userToken',
-})
+const userWithTokenTC = user.tc
+  .clone('userWithToken')
+  .addFields({ token: 'String!' })
 
 const getToken = (userId: string) =>
   jwt.sign({ userId }, config.jwtSecret, { expiresIn: '1d' })
+
+const registerUser = (
+  username: string,
+  password: string
+): Promise<TDocument<TUserDB>> =>
+  (user.tc.mongooseResolvers
+    .createOne()
+    .wrapResolve<unknown, { record: { username: string } }>((next) => (rp) => {
+      rp.beforeRecordMutate = async (doc: TUserDB) => {
+        doc.password = await bcrypt.hash(password, 10)
+        return doc
+      }
+      return next(rp) as Promise<TUserDB>
+    })
+    .resolve({ args: { record: { username } } }) as Promise<{
+    record: TDocument<TUserDB>
+  }>).then((value) => value.record)
 
 user.addFields('queries', {
   findMe: schemaComposer.createResolver({
@@ -59,32 +76,27 @@ user.addFields('mutations', {
 
       const token = getToken(dbUser.id)
 
-      return { token }
+      return { ...dbUser.toObject(), token }
     },
-    type: userTokenTC,
+    type: userWithTokenTC,
   }),
-  register: user.tc.mongooseResolvers
-    .createOne()
-    .wrap((newResolver) => {
-      const recordArg = newResolver.getArgITC('record')
-      recordArg.addFields({ password: 'String!' })
-      newResolver.setArg('record', recordArg.getTypeNonNull())
-      return newResolver
-    })
-    .wrapResolve<unknown, MutationUser_RegisterArgs>((next) => async (rp) => {
-      const dbUser = await user.model.findOne({
-        username: rp.args.record.username,
-      })
+  register: schemaComposer.createResolver<unknown, MutationUser_RegisterArgs>({
+    args: { password: 'String!', username: 'String!' },
+    kind: 'mutation',
+    name: 'user_register',
+    async resolve({ args: { password, username } }) {
+      const dbUser = await user.model.findOne({ username })
 
       if (dbUser) throw new ValidationError('user already exists!')
 
-      rp.beforeRecordMutate = async (doc: TUserDB) => {
-        doc.password = await bcrypt.hash(rp.args.record.password, 10)
-        return doc
-      }
+      const newDbUser = await registerUser(username, password)
 
-      return next(rp) as Promise<User>
-    }),
+      const token = getToken(newDbUser.id)
+
+      return { ...newDbUser.toObject(), token }
+    },
+    type: userWithTokenTC,
+  }),
 })
 
 export default user
