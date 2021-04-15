@@ -10,8 +10,39 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
+  JSON: any;
   /** The `ID` scalar type represents a unique MongoDB identifier in collection. MongoDB by default use 12-byte ObjectId value (https://docs.mongodb.com/manual/reference/bson-types/#objectid). But MongoDB also may accepts string or integer as correct values for _id field. */
   MongoID: ObjectID;
+};
+
+export type CreateOnegroupInput = {
+  membersId?: Maybe<Array<Maybe<Scalars['MongoID']>>>;
+  name: Scalars['String'];
+};
+
+export type CreateOnegroupPayload = {
+  __typename?: 'CreateOnegroupPayload';
+  /** Document ID */
+  recordId?: Maybe<Scalars['MongoID']>;
+  /** Created document */
+  record?: Maybe<Group>;
+  /** Error that may occur during operation. If you request this field in GraphQL query, you will receive typed error in payload; otherwise error will be provided in root `errors` field of GraphQL response. */
+  error?: Maybe<ErrorInterface>;
+};
+
+export type ErrorInterface = {
+  /** Generic error message */
+  message?: Maybe<Scalars['String']>;
+};
+
+
+export type MongoError = ErrorInterface & {
+  __typename?: 'MongoError';
+  /** MongoDB error message */
+  message?: Maybe<Scalars['String']>;
+  /** MongoDB error code */
+  code?: Maybe<Scalars['Int']>;
 };
 
 
@@ -19,6 +50,8 @@ export type Mutation = {
   __typename?: 'Mutation';
   user_login?: Maybe<UserWithToken>;
   user_register?: Maybe<UserWithToken>;
+  /** Create one document with mongoose defaults, setters, hooks and validation */
+  group_createOne?: Maybe<CreateOnegroupPayload>;
 };
 
 
@@ -33,24 +66,56 @@ export type MutationUser_RegisterArgs = {
   username: Scalars['String'];
 };
 
+
+export type MutationGroup_CreateOneArgs = {
+  record: CreateOnegroupInput;
+};
+
 export type Query = {
   __typename?: 'Query';
   user_findMe?: Maybe<User>;
+};
+
+export type RuntimeError = ErrorInterface & {
+  __typename?: 'RuntimeError';
+  /** Runtime error message */
+  message?: Maybe<Scalars['String']>;
+};
+
+export type ValidationError = ErrorInterface & {
+  __typename?: 'ValidationError';
+  /** Combined error message from all validators */
+  message?: Maybe<Scalars['String']>;
+  /** List of validator errors */
+  errors?: Maybe<Array<ValidatorError>>;
+};
+
+export type ValidatorError = {
+  __typename?: 'ValidatorError';
+  /** Validation error message */
+  message?: Maybe<Scalars['String']>;
+  /** Source of the validation error from the model path */
+  path?: Maybe<Scalars['String']>;
+  /** Field value which occurs the validation error */
+  value?: Maybe<Scalars['JSON']>;
+  /** Input record idx in array which occurs the validation error. This `idx` is useful for createMany operation. For singular operations it always be 0. For *Many operations `idx` represents record index in array received from user. */
+  idx: Scalars['Int'];
 };
 
 export type Group = {
   __typename?: 'group';
   membersId?: Maybe<Array<Maybe<Scalars['MongoID']>>>;
   name: Scalars['String'];
-  ownerId: Scalars['MongoID'];
   _id: Scalars['MongoID'];
+  members: Array<Maybe<User>>;
 };
 
 export type User = {
   __typename?: 'user';
   username: Scalars['String'];
   _id: Scalars['MongoID'];
-  groups?: Maybe<Array<Maybe<Group>>>;
+  groupsId: Array<Maybe<Scalars['MongoID']>>;
+  groups: Array<Maybe<Group>>;
 };
 
 export type UserWithToken = {

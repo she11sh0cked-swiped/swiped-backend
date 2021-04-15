@@ -2,9 +2,10 @@ import { schemaComposer } from 'graphql-compose'
 
 import Schema from '~/utils/schema'
 
+import group from './group'
 import user from './user'
 
-const schemas = [user]
+const schemas = [user, group]
 
 function fieldsWithPrepend(
   prepend: string,
