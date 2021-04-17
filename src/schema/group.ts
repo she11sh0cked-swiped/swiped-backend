@@ -1,6 +1,6 @@
 import { Types } from 'mongoose'
 
-import { Group, User } from '~/types/api.generated'
+import { Group, MutationGroup_CreateOneArgs, User } from '~/types/api.generated'
 import { TDocument } from '~/types/db'
 import Schema from '~/utils/schema'
 
@@ -28,7 +28,17 @@ group.addFields('queries', {
 })
 
 group.addFields('mutations', {
-  createOne: group.tc.mongooseResolvers.createOne(),
+  createOne: group.tc.mongooseResolvers
+    .createOne()
+    .wrapResolve<undefined, MutationGroup_CreateOneArgs>((next) => (rp) => {
+      rp.beforeRecordMutate = (doc: TDocument<Group>) => {
+        if (doc.membersId == null) doc.membersId = []
+        doc.membersId.push(Types.ObjectId(rp.context.userId))
+        return doc
+      }
+
+      return next(rp) as Promise<{ record: Group }>
+    }),
 })
 
 //* User relations
