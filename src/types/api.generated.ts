@@ -74,6 +74,12 @@ export type MutationGroup_CreateOneArgs = {
 export type Query = {
   __typename?: 'Query';
   user_findMe?: Maybe<User>;
+  group_findById?: Maybe<Group>;
+};
+
+
+export type QueryGroup_FindByIdArgs = {
+  _id: Scalars['MongoID'];
 };
 
 export type RuntimeError = ErrorInterface & {

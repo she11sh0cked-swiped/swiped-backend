@@ -23,6 +23,10 @@ group.tc.addRelation('members', {
   resolver: () => user.tc.mongooseResolvers.dataLoaderMany(),
 })
 
+group.addFields('queries', {
+  findById: group.tc.mongooseResolvers.findById(),
+})
+
 group.addFields('mutations', {
   createOne: group.tc.mongooseResolvers.createOne(),
 })
