@@ -38,13 +38,15 @@ const registerUser = (
 ): Promise<TDocument<TUserDB>> =>
   (user.tc.mongooseResolvers
     .createOne()
-    .wrapResolve<unknown, { record: { username: string } }>((next) => (rp) => {
-      rp.beforeRecordMutate = async (doc: TUserDB) => {
-        doc.password = await bcrypt.hash(password, 10)
-        return doc
+    .wrapResolve<undefined, { record: { username: string } }>(
+      (next) => (rp) => {
+        rp.beforeRecordMutate = async (doc: TUserDB) => {
+          doc.password = await bcrypt.hash(password, 10)
+          return doc
+        }
+        return next(rp) as Promise<TUserDB>
       }
-      return next(rp) as Promise<TUserDB>
-    })
+    )
     .resolve({ args: { record: { username } } }) as Promise<{
     record: TDocument<TUserDB>
   }>).then((value) => value.record)
@@ -62,7 +64,7 @@ user.addFields('queries', {
 })
 
 user.addFields('mutations', {
-  login: schemaComposer.createResolver<unknown, MutationUser_LoginArgs>({
+  login: schemaComposer.createResolver<undefined, MutationUser_LoginArgs>({
     args: { password: 'String!', username: 'String!' },
     kind: 'mutation',
     name: 'user_login',
@@ -80,23 +82,25 @@ user.addFields('mutations', {
     },
     type: userWithTokenTC,
   }),
-  register: schemaComposer.createResolver<unknown, MutationUser_RegisterArgs>({
-    args: { password: 'String!', username: 'String!' },
-    kind: 'mutation',
-    name: 'user_register',
-    async resolve({ args: { password, username } }) {
-      const dbUser = await user.model.findOne({ username })
+  register: schemaComposer.createResolver<undefined, MutationUser_RegisterArgs>(
+    {
+      args: { password: 'String!', username: 'String!' },
+      kind: 'mutation',
+      name: 'user_register',
+      async resolve({ args: { password, username } }) {
+        const dbUser = await user.model.findOne({ username })
 
-      if (dbUser) throw new ValidationError('user already exists!')
+        if (dbUser) throw new ValidationError('user already exists!')
 
-      const newDbUser = await registerUser(username, password)
+        const newDbUser = await registerUser(username, password)
 
-      const token = getToken(newDbUser)
+        const token = getToken(newDbUser)
 
-      return { ...newDbUser.toObject(), token }
-    },
-    type: userWithTokenTC,
-  }),
+        return { ...newDbUser.toObject(), token }
+      },
+      type: userWithTokenTC,
+    }
+  ),
 })
 
 export default user
