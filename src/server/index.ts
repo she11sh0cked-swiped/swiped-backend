@@ -10,8 +10,8 @@ const app = express()
 
 app.use(morgan('combined'))
 
-applyClient(app)
 applyApi(app)
+applyClient(app)
 
 app.listen({ port: process.env.PORT }, () => {
   console.log(`🚀 Launching!
