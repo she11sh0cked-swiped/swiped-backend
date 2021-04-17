@@ -19,6 +19,7 @@ export type Scalars = {
 export type CreateOnegroupInput = {
   membersId?: Maybe<Array<Maybe<Scalars['MongoID']>>>;
   name: Scalars['String'];
+  ownerId: Scalars['MongoID'];
 };
 
 export type CreateOnegroupPayload = {
@@ -112,8 +113,10 @@ export type Group = {
   __typename?: 'group';
   membersId?: Maybe<Array<Maybe<Scalars['MongoID']>>>;
   name: Scalars['String'];
+  ownerId: Scalars['MongoID'];
   _id: Scalars['MongoID'];
   members: Array<Maybe<User>>;
+  owner?: Maybe<User>;
 };
 
 export type User = {

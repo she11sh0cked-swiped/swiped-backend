@@ -13,6 +13,15 @@ const group = new Schema<Group>('group', {
     type: [{ ref: user.name, type: Types.ObjectId }],
   },
   name: { required: true, type: String },
+  ownerId: { ref: user.name, required: true, type: Types.ObjectId },
+})
+
+group.tc.addRelation('owner', {
+  prepareArgs: {
+    _id: (source) => source.ownerId,
+  },
+  projection: { ownerId: 1 },
+  resolver: () => user.tc.mongooseResolvers.dataLoader(),
 })
 
 group.tc.addRelation('members', {
@@ -33,7 +42,8 @@ group.addFields('mutations', {
     .wrapResolve<undefined, MutationGroup_CreateOneArgs>((next) => (rp) => {
       rp.beforeRecordMutate = (doc: TDocument<Group>) => {
         if (doc.membersId == null) doc.membersId = []
-        doc.membersId.push(Types.ObjectId(rp.context.userId))
+        doc.ownerId = Types.ObjectId(rp.context.userId)
+        doc.membersId.push(doc.ownerId)
         return doc
       }
 
