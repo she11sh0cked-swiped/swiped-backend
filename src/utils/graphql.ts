@@ -1,5 +1,11 @@
 import { gql } from 'apollo-server-core'
 import { FragmentSpreadNode, OperationDefinitionNode } from 'graphql'
+import {
+  SchemaComposer,
+  schemaComposer as _schemaComposer,
+} from 'graphql-compose'
+
+import { IContext } from '~/types/graphql'
 
 export function getOperationName(query: string): string {
   const ast = gql(query)
@@ -17,3 +23,5 @@ export function getOperationType(query: string): string {
 
   return type
 }
+
+export const schemaComposer = _schemaComposer as SchemaComposer<IContext>

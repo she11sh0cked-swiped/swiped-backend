@@ -1,5 +1,4 @@
-import { schemaComposer } from 'graphql-compose'
-
+import { schemaComposer } from '~/utils/graphql'
 import Schema from '~/utils/schema'
 
 import group from './group'

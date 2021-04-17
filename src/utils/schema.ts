@@ -7,6 +7,7 @@ import {
 import mongoose from 'mongoose'
 
 import { TDocument } from '~/types/db'
+import { IContext } from '~/types/graphql'
 
 type IFieldMap = Record<string, Resolver>
 
@@ -32,8 +33,8 @@ class Schema<
 
   schema: mongoose.Schema
   model: mongoose.Model<TDocument<TSchema>>
-  tc: ObjectTypeComposer<TDocument<TSchema>, unknown> & {
-    mongooseResolvers: GenerateResolverType<TDocument<TSchema>, unknown>
+  tc: ObjectTypeComposer<TDocument<TSchema>, IContext> & {
+    mongooseResolvers: GenerateResolverType<TDocument<TSchema>, IContext>
   }
 
   constructor(

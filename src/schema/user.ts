@@ -1,6 +1,5 @@
 import { AuthenticationError, ValidationError } from 'apollo-server-errors'
 import bcrypt from 'bcrypt'
-import { schemaComposer } from 'graphql-compose'
 import jwt from 'jsonwebtoken'
 
 import config from '~/config'
@@ -10,6 +9,7 @@ import {
   User,
 } from '~/types/api.generated'
 import { TDocument } from '~/types/db'
+import { schemaComposer } from '~/utils/graphql'
 import Schema from '~/utils/schema'
 
 type TUserDB = User & {

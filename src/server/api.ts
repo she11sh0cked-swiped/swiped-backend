@@ -9,9 +9,10 @@ import jwt from 'jsonwebtoken'
 import config from '~/config'
 import logging from '~/logging'
 import schema from '~/schema'
+import { IContext } from '~/types/graphql'
 import { getOperationName } from '~/utils/graphql'
 
-type TDecodedJWT = string | { userId: string }
+type TDecodedJWT = IContext | string
 
 function getUserId(token: string) {
   const decoded = jwt.verify(token, config.jwtSecret) as TDecodedJWT
