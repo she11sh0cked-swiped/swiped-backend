@@ -1,20 +1,24 @@
 import { Types } from 'mongoose'
 
-import { Group, MutationGroup_CreateOneArgs, User } from '~/types/api.generated'
+import { Group, User } from '~/types/api.generated'
 import { TDocument } from '~/types/db'
 import Schema from '~/utils/schema'
 
 import user from './user'
 
-const group = new Schema<Group>('group', {
-  membersId: {
-    default: [],
-    index: true,
-    type: [{ ref: user.name, type: Types.ObjectId }],
+const group = new Schema<Group>(
+  'group',
+  {
+    membersId: {
+      default: [],
+      index: true,
+      type: [{ ref: user.name, type: Types.ObjectId }],
+    },
+    name: { required: true, type: String },
+    ownerId: { ref: user.name, required: true, type: Types.ObjectId },
   },
-  name: { required: true, type: String },
-  ownerId: { ref: user.name, required: true, type: Types.ObjectId },
-})
+  { compose: { inputType: { removeFields: ['ownerId'] } } }
+)
 
 group.tc.addRelation('owner', {
   prepareArgs: {
@@ -39,11 +43,13 @@ group.addFields('queries', {
 group.addFields('mutations', {
   createOne: group.tc.mongooseResolvers
     .createOne()
-    .wrapResolve<undefined, MutationGroup_CreateOneArgs>((next) => (rp) => {
+    .wrapResolve((next) => (rp) => {
       rp.beforeRecordMutate = (doc: TDocument<Group>) => {
         if (doc.membersId == null) doc.membersId = []
         doc.ownerId = Types.ObjectId(rp.context.userId)
+
         doc.membersId.push(doc.ownerId)
+
         return doc
       }
 

@@ -4,8 +4,8 @@ import jwt from 'jsonwebtoken'
 
 import config from '~/config'
 import {
+  MutationUser_CreateOneArgs,
   MutationUser_LoginArgs,
-  MutationUser_RegisterArgs,
   User,
 } from '~/types/api.generated'
 import { TDocument } from '~/types/db'
@@ -20,36 +20,10 @@ const user = new Schema<TUserDB>(
   'user',
   {
     password: { required: true, type: String },
-    username: { required: true, type: String },
+    username: { required: true, type: String, unique: true },
   },
   { compose: { removeFields: ['password'] } }
 )
-
-const userWithTokenTC = user.tc
-  .clone('userWithToken')
-  .addFields({ token: 'String!' })
-
-const getToken = ({ _id }: User) =>
-  jwt.sign({ userId: _id }, config.jwtSecret, { expiresIn: '1d' })
-
-const registerUser = (
-  username: string,
-  password: string
-): Promise<TDocument<TUserDB>> =>
-  (user.tc.mongooseResolvers
-    .createOne()
-    .wrapResolve<undefined, { record: { username: string } }>(
-      (next) => (rp) => {
-        rp.beforeRecordMutate = async (doc: TUserDB) => {
-          doc.password = await bcrypt.hash(password, 10)
-          return doc
-        }
-        return next(rp) as Promise<TUserDB>
-      }
-    )
-    .resolve({ args: { record: { username } } }) as Promise<{
-    record: TDocument<TUserDB>
-  }>).then((value) => value.record)
 
 user.addFields('queries', {
   findMe: schemaComposer.createResolver({
@@ -64,6 +38,26 @@ user.addFields('queries', {
 })
 
 user.addFields('mutations', {
+  createOne: user.tc.mongooseResolvers
+    .createOne()
+    .wrap<undefined, MutationUser_CreateOneArgs>((resolver) => {
+      resolver.addArgs({ confirmPassword: 'String!', password: 'String!' })
+      return resolver
+    })
+    .wrapResolve((next) => (rp) => {
+      rp.beforeRecordMutate = async (doc: TDocument<TUserDB>) => {
+        const { confirmPassword, password } = rp.args
+
+        if (password !== confirmPassword)
+          throw new ValidationError('passwords do not match!')
+
+        doc.password = await bcrypt.hash(password, 10)
+
+        return doc
+      }
+
+      return next(rp) as Promise<{ record: User }>
+    }),
   login: schemaComposer.createResolver<undefined, MutationUser_LoginArgs>({
     args: { password: 'String!', username: 'String!' },
     kind: 'mutation',
@@ -76,31 +70,19 @@ user.addFields('mutations', {
       const isMatch = await bcrypt.compare(password, dbUser.password)
       if (!isMatch) throw new AuthenticationError('wrong password!')
 
-      const token = getToken(dbUser)
+      const token = jwt.sign({ userId: dbUser._id }, config.jwtSecret, {
+        expiresIn: '1d',
+      })
 
-      return { ...dbUser.toObject(), token }
+      return { token }
     },
-    type: userWithTokenTC,
-  }),
-  register: schemaComposer.createResolver<undefined, MutationUser_RegisterArgs>(
-    {
-      args: { password: 'String!', username: 'String!' },
-      kind: 'mutation',
-      name: 'user_register',
-      async resolve({ args: { password, username } }) {
-        const dbUser = await user.model.findOne({ username })
-
-        if (dbUser) throw new ValidationError('user already exists!')
-
-        const newDbUser = await registerUser(username, password)
-
-        const token = getToken(newDbUser)
-
-        return { ...newDbUser.toObject(), token }
+    type: schemaComposer.createObjectTC({
+      fields: {
+        token: 'String!',
       },
-      type: userWithTokenTC,
-    }
-  ),
+      name: 'token',
+    }),
+  }),
 })
 
 export default user

@@ -19,7 +19,6 @@ export type Scalars = {
 export type CreateOnegroupInput = {
   membersId?: Maybe<Array<Maybe<Scalars['MongoID']>>>;
   name: Scalars['String'];
-  ownerId: Scalars['MongoID'];
 };
 
 export type CreateOnegroupPayload = {
@@ -28,6 +27,20 @@ export type CreateOnegroupPayload = {
   recordId?: Maybe<Scalars['MongoID']>;
   /** Created document */
   record?: Maybe<Group>;
+  /** Error that may occur during operation. If you request this field in GraphQL query, you will receive typed error in payload; otherwise error will be provided in root `errors` field of GraphQL response. */
+  error?: Maybe<ErrorInterface>;
+};
+
+export type CreateOneuserInput = {
+  username: Scalars['String'];
+};
+
+export type CreateOneuserPayload = {
+  __typename?: 'CreateOneuserPayload';
+  /** Document ID */
+  recordId?: Maybe<Scalars['MongoID']>;
+  /** Created document */
+  record?: Maybe<User>;
   /** Error that may occur during operation. If you request this field in GraphQL query, you will receive typed error in payload; otherwise error will be provided in root `errors` field of GraphQL response. */
   error?: Maybe<ErrorInterface>;
 };
@@ -49,20 +62,22 @@ export type MongoError = ErrorInterface & {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  user_login?: Maybe<UserWithToken>;
-  user_register?: Maybe<UserWithToken>;
+  /** Create one document with mongoose defaults, setters, hooks and validation */
+  user_createOne?: Maybe<CreateOneuserPayload>;
+  user_login?: Maybe<Token>;
   /** Create one document with mongoose defaults, setters, hooks and validation */
   group_createOne?: Maybe<CreateOnegroupPayload>;
 };
 
 
-export type MutationUser_LoginArgs = {
+export type MutationUser_CreateOneArgs = {
+  record: CreateOneuserInput;
+  confirmPassword: Scalars['String'];
   password: Scalars['String'];
-  username: Scalars['String'];
 };
 
 
-export type MutationUser_RegisterArgs = {
+export type MutationUser_LoginArgs = {
   password: Scalars['String'];
   username: Scalars['String'];
 };
@@ -115,8 +130,13 @@ export type Group = {
   name: Scalars['String'];
   ownerId: Scalars['MongoID'];
   _id: Scalars['MongoID'];
-  members: Array<Maybe<User>>;
   owner?: Maybe<User>;
+  members: Array<Maybe<User>>;
+};
+
+export type Token = {
+  __typename?: 'token';
+  token: Scalars['String'];
 };
 
 export type User = {
@@ -125,11 +145,4 @@ export type User = {
   _id: Scalars['MongoID'];
   groupsId: Array<Maybe<Scalars['MongoID']>>;
   groups: Array<Maybe<Group>>;
-};
-
-export type UserWithToken = {
-  __typename?: 'userWithToken';
-  username: Scalars['String'];
-  _id: Scalars['MongoID'];
-  token: Scalars['String'];
 };

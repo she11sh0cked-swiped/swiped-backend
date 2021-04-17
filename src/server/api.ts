@@ -23,7 +23,7 @@ function getUserId(token: string) {
   return decoded.userId
 }
 
-const whitelist = ['user_login', 'user_register', '__schema']
+const whitelist = ['user_login', 'user_createOne', '__schema']
 
 const context = ({
   req: {
