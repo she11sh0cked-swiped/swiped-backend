@@ -12,15 +12,19 @@ import Schema from '~/utils/schema'
 
 import user from './user'
 
-const group = new Schema<Group>('group', {
-  membersId: {
-    default: [],
-    index: true,
-    type: [{ ref: user.name, type: Types.ObjectId }],
+const group = new Schema<Group>(
+  'group',
+  {
+    membersId: {
+      default: [],
+      index: true,
+      type: [{ ref: user.name, type: Types.ObjectId }],
+    },
+    name: { required: true, type: String },
+    ownerId: { ref: user.name, required: true, type: Types.ObjectId },
   },
-  name: { required: true, type: String },
-  ownerId: { ref: user.name, required: true, type: Types.ObjectId },
-})
+  { compose: { inputType: { removeFields: ['_id'] } } }
+)
 
 group.tc.addRelation('owner', {
   prepareArgs: {
