@@ -1,7 +1,7 @@
 import { Types } from 'mongoose'
 
-import { Group, User } from '~/types/api.generated'
-import { TDocument } from '~/types/db'
+import { Group, MutationGroup_JoinByIdArgs, User } from '~/types/api.generated'
+import { TDocument, TResolve } from '~/types/db'
 import Schema from '~/utils/schema'
 
 import user from './user'
@@ -45,15 +45,45 @@ group.addFields('mutations', {
     .createOne()
     .wrapResolve((next) => (rp) => {
       rp.beforeRecordMutate = (doc: TDocument<Group>) => {
-        if (doc.membersId == null) doc.membersId = []
-        doc.ownerId = Types.ObjectId(rp.context.userId)
+        const {
+          context: { userId },
+        } = rp
 
-        doc.membersId.push(doc.ownerId)
+        const dbUserId = Types.ObjectId(userId)
+
+        doc.ownerId = dbUserId
+        doc.membersId = [dbUserId]
 
         return doc
       }
 
-      return next(rp) as Promise<{ record: Group }>
+      return next(rp) as TResolve<Group>
+    }),
+  joinById: group.tc.mongooseResolvers
+    .updateById()
+    .wrap((resolver) => {
+      resolver.removeArg('record')
+      return resolver
+    })
+    .wrapResolve<
+      undefined,
+      MutationGroup_JoinByIdArgs & { record: Partial<Group> }
+    >((next) => async (rp) => {
+      rp.args.record = {}
+
+      rp.beforeRecordMutate = (doc: TDocument<Group>) => {
+        const {
+          context: { userId },
+        } = rp
+
+        const dbUserId = Types.ObjectId(userId)
+
+        if (!doc.membersId?.includes(dbUserId)) doc.membersId?.push(dbUserId)
+
+        return doc
+      }
+
+      return next(rp) as TResolve<Group>
     }),
 })
 
