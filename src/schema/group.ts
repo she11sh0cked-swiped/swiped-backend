@@ -84,6 +84,7 @@ group.addFields('mutations', {
 
         const dbUserId = Types.ObjectId(userId)
 
+        if (!doc.membersId?.includes(doc.ownerId)) doc.ownerId = dbUserId
         if (!doc.membersId?.includes(dbUserId)) doc.membersId?.push(dbUserId)
 
         return doc
@@ -114,6 +115,10 @@ group.addFields('mutations', {
 
         const index = doc.membersId?.indexOf(dbUserId) ?? -1
         if (index > -1) doc.membersId?.splice(index, 1)
+
+        const nextOwner = doc.membersId?.[0]
+        if (doc.ownerId.equals(userId) && nextOwner != null)
+          doc.ownerId = nextOwner
 
         return doc
       }
