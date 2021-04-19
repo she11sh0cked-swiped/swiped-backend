@@ -8,7 +8,7 @@ import {
   MutationUser_LoginArgs,
   User,
 } from '~/types/api.generated'
-import { TDocument } from '~/types/db'
+import { TDocument, TResolve } from '~/types/db'
 import { schemaComposer } from '~/utils/graphql'
 import Schema from '~/utils/schema'
 
@@ -40,11 +40,11 @@ user.addFields('queries', {
 user.addFields('mutations', {
   createOne: user.tc.mongooseResolvers
     .createOne()
-    .wrap<undefined, MutationUser_CreateOneArgs>((resolver) => {
+    .wrap((resolver) => {
       resolver.addArgs({ confirmPassword: 'String!', password: 'String!' })
       return resolver
     })
-    .wrapResolve((next) => (rp) => {
+    .wrapResolve<undefined, MutationUser_CreateOneArgs>((next) => (rp) => {
       rp.beforeRecordMutate = async (doc: TDocument<TUserDB>) => {
         const { confirmPassword, password } = rp.args
 
@@ -56,7 +56,7 @@ user.addFields('mutations', {
         return doc
       }
 
-      return next(rp) as Promise<{ record: User }>
+      return next(rp) as TResolve<TUserDB>
     }),
   login: schemaComposer.createResolver<undefined, MutationUser_LoginArgs>({
     args: { password: 'String!', username: 'String!' },
