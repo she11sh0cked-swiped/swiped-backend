@@ -69,6 +69,8 @@ export type Mutation = {
   group_createOne?: Maybe<CreateOnegroupPayload>;
   /** Update one document: 1) Retrieve one document by findById. 2) Apply updates to mongoose document. 3) Mongoose applies defaults, setters, hooks and validation. 4) And save it. */
   group_joinById?: Maybe<UpdateByIdgroupPayload>;
+  /** Update one document: 1) Retrieve one document by findById. 2) Apply updates to mongoose document. 3) Mongoose applies defaults, setters, hooks and validation. 4) And save it. */
+  group_leaveById?: Maybe<UpdateByIdgroupPayload>;
 };
 
 
@@ -91,6 +93,11 @@ export type MutationGroup_CreateOneArgs = {
 
 
 export type MutationGroup_JoinByIdArgs = {
+  _id: Scalars['MongoID'];
+};
+
+
+export type MutationGroup_LeaveByIdArgs = {
   _id: Scalars['MongoID'];
 };
 

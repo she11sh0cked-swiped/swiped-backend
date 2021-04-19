@@ -1,6 +1,11 @@
 import { Types } from 'mongoose'
 
-import { Group, MutationGroup_JoinByIdArgs, User } from '~/types/api.generated'
+import {
+  Group,
+  MutationGroup_JoinByIdArgs,
+  MutationGroup_LeaveByIdArgs,
+  User,
+} from '~/types/api.generated'
 import { TDocument, TResolve } from '~/types/db'
 import Schema from '~/utils/schema'
 
@@ -79,6 +84,33 @@ group.addFields('mutations', {
         const dbUserId = Types.ObjectId(userId)
 
         if (!doc.membersId?.includes(dbUserId)) doc.membersId?.push(dbUserId)
+
+        return doc
+      }
+
+      return next(rp) as TResolve<Group>
+    }),
+  leaveById: group.tc.mongooseResolvers
+    .updateById()
+    .wrap((resolver) => {
+      resolver.removeArg('record')
+      return resolver
+    })
+    .wrapResolve<
+      undefined,
+      MutationGroup_LeaveByIdArgs & { record: Partial<Group> }
+    >((next) => async (rp) => {
+      rp.args.record = {}
+
+      rp.beforeRecordMutate = (doc: TDocument<Group>) => {
+        const {
+          context: { userId },
+        } = rp
+
+        const dbUserId = Types.ObjectId(userId)
+
+        const index = doc.membersId?.indexOf(dbUserId) ?? -1
+        if (index > -1) doc.membersId?.splice(index, 1)
 
         return doc
       }
