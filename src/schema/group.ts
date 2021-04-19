@@ -1,3 +1,4 @@
+import { ForbiddenError } from 'apollo-server-express'
 import { Types } from 'mongoose'
 
 import {
@@ -11,19 +12,15 @@ import Schema from '~/utils/schema'
 
 import user from './user'
 
-const group = new Schema<Group>(
-  'group',
-  {
-    membersId: {
-      default: [],
-      index: true,
-      type: [{ ref: user.name, type: Types.ObjectId }],
-    },
-    name: { required: true, type: String },
-    ownerId: { ref: user.name, required: true, type: Types.ObjectId },
+const group = new Schema<Group>('group', {
+  membersId: {
+    default: [],
+    index: true,
+    type: [{ ref: user.name, type: Types.ObjectId }],
   },
-  { compose: { inputType: { removeFields: ['ownerId'] } } }
-)
+  name: { required: true, type: String },
+  ownerId: { ref: user.name, required: true, type: Types.ObjectId },
+})
 
 group.tc.addRelation('owner', {
   prepareArgs: {
@@ -47,7 +44,7 @@ group.addFields('queries', {
 
 group.addFields('mutations', {
   createOne: group.tc.mongooseResolvers
-    .createOne()
+    .createOne({ record: { removeFields: ['ownerId'] } })
     .wrapResolve((next) => (rp) => {
       rp.beforeRecordMutate = (doc: TDocument<Group>) => {
         const {
@@ -117,6 +114,23 @@ group.addFields('mutations', {
 
         const index = doc.membersId?.indexOf(dbUserId) ?? -1
         if (index > -1) doc.membersId?.splice(index, 1)
+
+        return doc
+      }
+
+      return next(rp) as TResolve<Group>
+    }),
+  updateById: group.tc.mongooseResolvers
+    .updateById()
+    .wrapResolve((next) => (rp) => {
+      rp.beforeRecordMutate = (doc: TDocument<Group>) => {
+        const {
+          context: { userId },
+        } = rp
+
+        if (doc == null) return
+        if (doc.ownerId.toHexString() != userId)
+          throw new ForbiddenError('you are not the owner of this group!')
 
         return doc
       }

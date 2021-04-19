@@ -19,6 +19,7 @@ export type Scalars = {
 export type CreateOnegroupInput = {
   membersId?: Maybe<Array<Maybe<Scalars['MongoID']>>>;
   name: Scalars['String'];
+  _id?: Maybe<Scalars['MongoID']>;
 };
 
 export type CreateOnegroupPayload = {
@@ -71,6 +72,8 @@ export type Mutation = {
   group_joinById?: Maybe<UpdateByIdgroupPayload>;
   /** Update one document: 1) Retrieve one document by findById. 2) Apply updates to mongoose document. 3) Mongoose applies defaults, setters, hooks and validation. 4) And save it. */
   group_leaveById?: Maybe<UpdateByIdgroupPayload>;
+  /** Update one document: 1) Retrieve one document by findById. 2) Apply updates to mongoose document. 3) Mongoose applies defaults, setters, hooks and validation. 4) And save it. */
+  group_updateById?: Maybe<UpdateByIdgroupPayload>;
 };
 
 
@@ -101,6 +104,12 @@ export type MutationGroup_LeaveByIdArgs = {
   _id: Scalars['MongoID'];
 };
 
+
+export type MutationGroup_UpdateByIdArgs = {
+  _id: Scalars['MongoID'];
+  record: UpdateByIdgroupInput;
+};
+
 export type Query = {
   __typename?: 'Query';
   user_findMe?: Maybe<User>;
@@ -116,6 +125,12 @@ export type RuntimeError = ErrorInterface & {
   __typename?: 'RuntimeError';
   /** Runtime error message */
   message?: Maybe<Scalars['String']>;
+};
+
+export type UpdateByIdgroupInput = {
+  membersId?: Maybe<Array<Maybe<Scalars['MongoID']>>>;
+  name?: Maybe<Scalars['String']>;
+  ownerId?: Maybe<Scalars['MongoID']>;
 };
 
 export type UpdateByIdgroupPayload = {
