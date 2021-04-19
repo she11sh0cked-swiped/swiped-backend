@@ -52,7 +52,11 @@ user.addFields('mutations', {
     })
     .wrapResolve<undefined, MutationUser_CreateOneArgs>((next) => (rp) => {
       rp.beforeRecordMutate = async (doc: TDocument<TUserDB>) => {
-        const { confirmPassword, password } = rp.args
+        const {
+          args: { confirmPassword, password },
+        } = rp
+
+        if (doc == null) return
 
         if (password !== confirmPassword)
           throw new ValidationError('passwords do not match!')

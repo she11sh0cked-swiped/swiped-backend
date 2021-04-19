@@ -54,6 +54,8 @@ group.addFields('mutations', {
           context: { userId },
         } = rp
 
+        if (doc == null) return
+
         const dbUserId = Types.ObjectId(userId)
 
         doc.ownerId = dbUserId
@@ -81,6 +83,8 @@ group.addFields('mutations', {
           context: { userId },
         } = rp
 
+        if (doc == null) return
+
         const dbUserId = Types.ObjectId(userId)
 
         if (!doc.membersId?.includes(dbUserId)) doc.membersId?.push(dbUserId)
@@ -106,6 +110,8 @@ group.addFields('mutations', {
         const {
           context: { userId },
         } = rp
+
+        if (doc == null) return
 
         const dbUserId = Types.ObjectId(userId)
 
