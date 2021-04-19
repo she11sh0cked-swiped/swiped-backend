@@ -26,15 +26,21 @@ const user = new Schema<TUserDB>(
 )
 
 user.addFields('queries', {
-  findMe: schemaComposer.createResolver({
-    kind: 'query',
-    name: 'user_findMe',
-    async resolve({ context: { userId } }) {
-      const dbUser = await user.model.findById(userId)
-      return dbUser
-    },
-    type: user.tc,
-  }),
+  findMe: user.tc.mongooseResolvers
+    .findById()
+    .wrap((resolver) => {
+      resolver.removeArg('_id')
+      return resolver
+    })
+    .wrapResolve<undefined, { _id: string }>((next) => async (rp) => {
+      const {
+        context: { userId },
+      } = rp
+
+      rp.args._id = userId
+
+      return next(rp) as TResolve<User>
+    }),
 })
 
 user.addFields('mutations', {
@@ -63,7 +69,9 @@ user.addFields('mutations', {
     kind: 'mutation',
     name: 'user_login',
     async resolve({ args: { password, username } }) {
-      const dbUser = await user.model.findOne({ username })
+      const dbUser = await (user.tc.mongooseResolvers
+        .findOne()
+        .resolve({ args: { filter: { username } } }) as Promise<TUserDB>)
 
       if (!dbUser) throw new AuthenticationError('user not found!')
 
