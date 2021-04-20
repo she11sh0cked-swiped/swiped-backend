@@ -10,11 +10,11 @@ COPY package.json .
 # ---- Dependencies ----
 FROM base AS dependencies
 # install node packages
-RUN yarn install --production --frozen-lockfile
+RUN yarn install --production --frozen-lockfile --network-timeout 300000
 # copy production node_modules aside
 RUN cp -R node_modules prod_node_modules
 # install ALL node_modules, including 'devDependencies'
-RUN yarn install --frozen-lockfile
+RUN yarn install --frozen-lockfile --network-timeout 300000
 
 #
 # ---- Build ----
