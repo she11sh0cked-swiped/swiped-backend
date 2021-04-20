@@ -138,8 +138,12 @@ group.addFields('mutations', {
         } = rp
 
         if (doc == null) return
+
         if (doc.ownerId.toHexString() != userId)
           throw new ForbiddenError('you are not the owner of this group!')
+
+        if (!doc.membersId?.includes(doc.ownerId))
+          doc.membersId?.push(doc.ownerId)
 
         return doc
       }
