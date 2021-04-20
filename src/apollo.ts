@@ -3,11 +3,9 @@ import {
   AuthenticationError,
   ExpressContext,
 } from 'apollo-server-express'
-import { Express } from 'express'
 import jwt from 'jsonwebtoken'
 
 import config from '~/config'
-import logging from '~/logging'
 import schema from '~/schema'
 import { IContext } from '~/types/graphql'
 import { getOperationName } from '~/utils/graphql'
@@ -42,15 +40,9 @@ const context = ({
   return { userId }
 }
 
-const api = new ApolloServer({
+const apollo = new ApolloServer({
   context,
   schema,
 })
 
-function applyApi(app: Express): void {
-  app.use(logging.api)
-  api.applyMiddleware({ app })
-}
-
-export { applyApi }
-export default api
+export default apollo
