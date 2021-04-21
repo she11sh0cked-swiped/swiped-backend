@@ -1,5 +1,5 @@
 import { ObjectID } from 'mongodb'
-export type Maybe<T> = T | null;
+export type Maybe<T> = T | undefined;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
@@ -113,11 +113,20 @@ export type Query = {
   __typename?: 'Query';
   user_findMe?: Maybe<User>;
   group_findById?: Maybe<Group>;
+  tmdb_moviePopular?: Maybe<PopularMoviesResponse>;
 };
 
 
 export type QueryGroup_FindByIdArgs = {
   _id: Scalars['MongoID'];
+};
+
+
+export type QueryTmdb_MoviePopularArgs = {
+  page?: Maybe<Scalars['Int']>;
+  region?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['Int']>;
+  language?: Maybe<Scalars['String']>;
 };
 
 export type RuntimeError = ErrorInterface & {
@@ -170,6 +179,33 @@ export type Group = {
   _id: Scalars['MongoID'];
   owner?: Maybe<User>;
   members: Array<Maybe<User>>;
+};
+
+export type MovieResponse = {
+  __typename?: 'movieResponse';
+  adult?: Maybe<Scalars['Boolean']>;
+  backdrop_path?: Maybe<Scalars['String']>;
+  genre_ids?: Maybe<Array<Maybe<Scalars['Int']>>>;
+  id?: Maybe<Scalars['Int']>;
+  media_type: Scalars['String'];
+  original_language?: Maybe<Scalars['String']>;
+  original_title?: Maybe<Scalars['String']>;
+  overview?: Maybe<Scalars['String']>;
+  popularity?: Maybe<Scalars['Int']>;
+  poster_path?: Maybe<Scalars['String']>;
+  release_date?: Maybe<Scalars['String']>;
+  title?: Maybe<Scalars['String']>;
+  video?: Maybe<Scalars['Boolean']>;
+  vote_average?: Maybe<Scalars['Float']>;
+  vote_count?: Maybe<Scalars['Int']>;
+};
+
+export type PopularMoviesResponse = {
+  __typename?: 'popularMoviesResponse';
+  results?: Maybe<Array<Maybe<MovieResponse>>>;
+  page?: Maybe<Scalars['Int']>;
+  total_pages?: Maybe<Scalars['Int']>;
+  total_results?: Maybe<Scalars['Int']>;
 };
 
 export type Token = {
