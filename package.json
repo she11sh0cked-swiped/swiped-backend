@@ -10,7 +10,9 @@
     "graphql-compose-mongoose": "^9.2.2",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.12.4",
-    "mongoose-unique-validator": "^2.0.3"
+    "mongoose-unique-validator": "^2.0.3",
+    "moviedb-promise": "^3.1.8",
+    "node-cache": "^5.1.2"
   },
   "devDependencies": {
     "@graphql-codegen/add": "^2.0.2",
