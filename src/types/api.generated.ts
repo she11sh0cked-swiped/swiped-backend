@@ -113,20 +113,12 @@ export type Query = {
   __typename?: 'Query';
   user_findMe?: Maybe<User>;
   group_findById?: Maybe<Group>;
-  tmdb_moviePopular?: Maybe<PopularMoviesResponse>;
+  media_recommendations?: Maybe<Array<Maybe<Media>>>;
 };
 
 
 export type QueryGroup_FindByIdArgs = {
   _id: Scalars['MongoID'];
-};
-
-
-export type QueryTmdb_MoviePopularArgs = {
-  page?: Maybe<Scalars['Int']>;
-  region?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['Int']>;
-  language?: Maybe<Scalars['String']>;
 };
 
 export type RuntimeError = ErrorInterface & {
@@ -181,31 +173,24 @@ export type Group = {
   members: Array<Maybe<User>>;
 };
 
-export type MovieResponse = {
-  __typename?: 'movieResponse';
+export type Media = Movie;
+
+export type Movie = {
+  __typename?: 'movie';
   adult?: Maybe<Scalars['Boolean']>;
   backdrop_path?: Maybe<Scalars['String']>;
   genre_ids?: Maybe<Array<Maybe<Scalars['Int']>>>;
   id?: Maybe<Scalars['Int']>;
-  media_type: Scalars['String'];
   original_language?: Maybe<Scalars['String']>;
   original_title?: Maybe<Scalars['String']>;
   overview?: Maybe<Scalars['String']>;
-  popularity?: Maybe<Scalars['Int']>;
+  popularity?: Maybe<Scalars['Float']>;
   poster_path?: Maybe<Scalars['String']>;
   release_date?: Maybe<Scalars['String']>;
   title?: Maybe<Scalars['String']>;
   video?: Maybe<Scalars['Boolean']>;
   vote_average?: Maybe<Scalars['Float']>;
   vote_count?: Maybe<Scalars['Int']>;
-};
-
-export type PopularMoviesResponse = {
-  __typename?: 'popularMoviesResponse';
-  results?: Maybe<Array<Maybe<MovieResponse>>>;
-  page?: Maybe<Scalars['Int']>;
-  total_pages?: Maybe<Scalars['Int']>;
-  total_results?: Maybe<Scalars['Int']>;
 };
 
 export type Token = {

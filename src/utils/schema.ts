@@ -1,4 +1,8 @@
-import { ObjectTypeComposer, Resolver } from 'graphql-compose'
+import {
+  NamedTypeComposer,
+  ObjectTypeComposer,
+  Resolver,
+} from 'graphql-compose'
 import {
   composeMongoose,
   ComposeMongooseOpts,
@@ -8,8 +12,6 @@ import mongoose from 'mongoose'
 
 import { TDocument } from '~/types/db'
 import { IContext } from '~/types/graphql'
-
-import { schemaComposer } from './graphql'
 
 type IFieldMap = Record<string, Resolver>
 
@@ -25,7 +27,7 @@ interface IOptions {
 }
 
 class Schema<
-  TSchema extends Record<string, unknown> = Record<string, unknown>
+  TTypeComposer extends NamedTypeComposer<IContext> = NamedTypeComposer<IContext>
 > {
   #fields: IFields = {
     mutations: {},
@@ -33,10 +35,10 @@ class Schema<
     subscriptions: {},
   }
 
-  tc: ObjectTypeComposer<TSchema, IContext>
+  constructor(public tc: TTypeComposer) {}
 
-  constructor(public name: string) {
-    this.tc = schemaComposer.createObjectTC({ name })
+  public get name(): string {
+    return this.tc.getTypeName()
   }
 
   addFields(type: keyof IFields, fields: IFieldMap): void {
@@ -48,11 +50,11 @@ class Schema<
   }
 }
 
-type TDBSchema<TSchema> = Omit<Schema, 'tc'> & {
-  tc: ObjectTypeComposer<TDocument<TSchema>, IContext> & {
+type TDBSchema<TSchema> = Schema<
+  ObjectTypeComposer<TDocument<TSchema>, IContext> & {
     mongooseResolvers: GenerateResolverType<TDocument<TSchema>, IContext>
   }
-}
+>
 
 export function dbSchemaFactory<
   TSchema extends Record<string, unknown> = Record<string, unknown>
@@ -60,15 +62,12 @@ export function dbSchemaFactory<
   name: string,
   definition: mongoose.SchemaDefinition,
   options: IOptions = {}
-): TDBSchema<TDocument<TSchema>> {
+): TDBSchema<TSchema> {
   const dbSchema = new mongoose.Schema(definition, options?.schema)
-  const model = mongoose.model<TDocument<TSchema>>(name, dbSchema)
-  const tc = composeMongoose<TDocument<TSchema>>(model, options?.compose)
+  const model = mongoose.model(name, dbSchema)
+  const tc = composeMongoose(model, options?.compose)
 
-  const schema = new Schema<TDocument<TSchema>>(name)
-  schema.tc = tc
-
-  return (schema as unknown) as TDBSchema<TDocument<TSchema>>
+  return new Schema(tc) as TDBSchema<TSchema>
 }
 
 export default Schema
