@@ -2,6 +2,7 @@
   "dependencies": {
     "apollo-server-express": "^2.23.0",
     "bcrypt": "^5.0.1",
+    "cli-highlight": "^2.1.11",
     "dotenv-defaults": "^2.0.1",
     "express": "^4.17.1",
     "graphql": "^15.5.0",
@@ -9,8 +10,7 @@
     "graphql-compose-mongoose": "^9.2.2",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.12.4",
-    "mongoose-unique-validator": "^2.0.3",
-    "morgan": "^1.10.0"
+    "mongoose-unique-validator": "^2.0.3"
   },
   "devDependencies": {
     "@graphql-codegen/add": "^2.0.2",
@@ -18,7 +18,6 @@
     "@graphql-codegen/typescript": "^1.21.1",
     "@types/bcrypt": "^3.0.1",
     "@types/jsonwebtoken": "^8.5.1",
-    "@types/morgan": "^1.9.2",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
     "circular-dependency-plugin": "^5.2.2",
