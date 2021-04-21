@@ -8,11 +8,11 @@ import {
   User,
 } from '~/types/api.generated'
 import { TDocument, TResolve } from '~/types/db'
-import Schema from '~/utils/schema'
+import { dbSchemaFactory } from '~/utils/schema'
 
 import user from './user'
 
-const group = new Schema<Group>(
+const group = dbSchemaFactory<Group>(
   'group',
   {
     membersId: {

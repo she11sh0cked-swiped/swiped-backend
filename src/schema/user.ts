@@ -10,13 +10,13 @@ import {
 } from '~/types/api.generated'
 import { TDocument, TResolve } from '~/types/db'
 import { schemaComposer } from '~/utils/graphql'
-import Schema from '~/utils/schema'
+import { dbSchemaFactory } from '~/utils/schema'
 
 type TUserDB = User & {
   password: string
 }
 
-const user = new Schema<TUserDB>(
+const user = dbSchemaFactory<TUserDB>(
   'user',
   {
     password: { required: true, type: String },
