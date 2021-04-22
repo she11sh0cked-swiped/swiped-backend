@@ -1,9 +1,11 @@
 import { AuthenticationError, ValidationError } from 'apollo-server-errors'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import mongoose from 'mongoose'
 
 import config from '~/config'
 import {
+  MediaInput,
   MutationUser_CreateOneArgs,
   MutationUser_LoginArgs,
   User,
@@ -12,18 +14,78 @@ import { TDocument, TResolve } from '~/types/db'
 import { schemaComposer } from '~/utils/graphql'
 import { dbSchemaFactory } from '~/utils/schema'
 
+import media, { findMediaById } from './media'
+
 type TUserDB = User & {
   password: string
 }
 
+const mediaSchema = new mongoose.Schema(
+  {
+    id: mongoose.SchemaTypes.Number,
+    media_type: mongoose.SchemaTypes.String,
+  },
+  { _id: false }
+)
+
 const user = dbSchemaFactory<TUserDB>(
   'user',
   {
+    media: {
+      dislikesId: { default: [], type: [mediaSchema] },
+      likesId: { default: [], type: [mediaSchema] },
+    },
     password: { required: true, type: String },
     username: { required: true, type: String, unique: true },
   },
-  { compose: { removeFields: ['password'] } }
+  {
+    compose: {
+      inputType: { removeFields: ['media'] },
+      removeFields: ['password'],
+    },
+  }
 )
+
+const userMediaInputTC = schemaComposer.createInputTC({
+  fields: {
+    dislikesId: media.tc.getInputType(),
+    likesId: media.tc.getInputType(),
+  },
+  name: 'userMediaInput',
+})
+
+user.tc.getInputTypeComposer().addFields({
+  media: userMediaInputTC,
+})
+
+user.tc
+  .getFieldOTC('media')
+  .addRelation('dislikes', {
+    projection: { dislikesId: 1 },
+    resolve(dbUser) {
+      const dislikes =
+        dbUser.media?.dislikesId?.map<MediaInput>((media) => ({
+          id: media?.id as MediaInput['id'],
+          media_type: media?.media_type as MediaInput['media_type'],
+        })) ?? []
+
+      return Promise.all(dislikes.map(findMediaById))
+    },
+    type: media.tc.getTypePlural(),
+  })
+  .addRelation('likes', {
+    projection: { likesId: 1 },
+    resolve(dbUser) {
+      const likes =
+        dbUser.media?.likesId?.map<MediaInput>((media) => ({
+          id: media?.id as MediaInput['id'],
+          media_type: media?.media_type as MediaInput['media_type'],
+        })) ?? []
+
+      return Promise.all(likes.map(findMediaById))
+    },
+    type: media.tc.getTypePlural(),
+  })
 
 user.addFields('queries', {
   findMe: user.tc.mongooseResolvers
@@ -95,6 +157,16 @@ user.addFields('mutations', {
       name: 'token',
     }),
   }),
+  updateMe: user.tc.mongooseResolvers
+    .updateById()
+    .wrap((resolver) => {
+      resolver.removeArg('_id')
+      return resolver
+    })
+    .wrapResolve<undefined>((next) => (rp) => {
+      rp.args._id = rp.context.userId
+      return next(rp) as TResolve<TUserDB>
+    }),
 })
 
 export default user

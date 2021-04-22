@@ -48,6 +48,10 @@ class Schema<
   getFields(type: keyof IFields): IFieldMap {
     return this.#fields[type]
   }
+
+  getResolver(type: keyof IFields, resolver: keyof IFieldMap): Resolver {
+    return this.#fields[type][resolver]
+  }
 }
 
 type TDBSchema<TSchema> = Schema<

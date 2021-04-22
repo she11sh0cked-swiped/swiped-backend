@@ -33,6 +33,7 @@ export type CreateOnegroupPayload = {
 
 export type CreateOneuserInput = {
   username: Scalars['String'];
+  media?: Maybe<UserMediaInput>;
 };
 
 export type CreateOneuserPayload = {
@@ -65,6 +66,8 @@ export type Mutation = {
   /** Create one document with mongoose defaults, setters, hooks and validation */
   user_createOne?: Maybe<CreateOneuserPayload>;
   user_login?: Maybe<Token>;
+  /** Update one document: 1) Retrieve one document by findById. 2) Apply updates to mongoose document. 3) Mongoose applies defaults, setters, hooks and validation. 4) And save it. */
+  user_updateMe?: Maybe<UpdateByIduserPayload>;
   /** Create one document with mongoose defaults, setters, hooks and validation */
   group_createOne?: Maybe<CreateOnegroupPayload>;
   /** Update one document: 1) Retrieve one document by findById. 2) Apply updates to mongoose document. 3) Mongoose applies defaults, setters, hooks and validation. 4) And save it. */
@@ -86,6 +89,11 @@ export type MutationUser_CreateOneArgs = {
 export type MutationUser_LoginArgs = {
   password: Scalars['String'];
   username: Scalars['String'];
+};
+
+
+export type MutationUser_UpdateMeArgs = {
+  record: UpdateByIduserInput;
 };
 
 
@@ -113,12 +121,18 @@ export type Query = {
   __typename?: 'Query';
   user_findMe?: Maybe<User>;
   group_findById?: Maybe<Group>;
+  media_findByIds?: Maybe<Array<Maybe<Media>>>;
   media_recommendations?: Maybe<Array<Maybe<Media>>>;
 };
 
 
 export type QueryGroup_FindByIdArgs = {
   _id: Scalars['MongoID'];
+};
+
+
+export type QueryMedia_FindByIdsArgs = {
+  media: Array<MediaInput>;
 };
 
 export type RuntimeError = ErrorInterface & {
@@ -139,6 +153,31 @@ export type UpdateByIdgroupPayload = {
   recordId?: Maybe<Scalars['MongoID']>;
   /** Updated document */
   record?: Maybe<Group>;
+  /** Error that may occur during operation. If you request this field in GraphQL query, you will receive typed error in payload; otherwise error will be provided in root `errors` field of GraphQL response. */
+  error?: Maybe<ErrorInterface>;
+};
+
+export type UpdateByIdmediaInput = {
+  id: Scalars['Int'];
+  media_type: Media_Type;
+};
+
+export type UpdateByIduserInput = {
+  username?: Maybe<Scalars['String']>;
+  media?: Maybe<UpdateByIduserMediaInput>;
+};
+
+export type UpdateByIduserMediaInput = {
+  dislikesId?: Maybe<UpdateByIdmediaInput>;
+  likesId?: Maybe<UpdateByIdmediaInput>;
+};
+
+export type UpdateByIduserPayload = {
+  __typename?: 'UpdateByIduserPayload';
+  /** Document ID */
+  recordId?: Maybe<Scalars['MongoID']>;
+  /** Updated document */
+  record?: Maybe<User>;
   /** Error that may occur during operation. If you request this field in GraphQL query, you will receive typed error in payload; otherwise error will be provided in root `errors` field of GraphQL response. */
   error?: Maybe<ErrorInterface>;
 };
@@ -173,14 +212,25 @@ export type Group = {
   members: Array<Maybe<User>>;
 };
 
-export type Media = Movie;
+export type Media = {
+  id: Scalars['Int'];
+  media_type: Media_Type;
+};
 
-export type Movie = {
+export type MediaInput = {
+  id: Scalars['Int'];
+  media_type: Media_Type;
+};
+
+export enum Media_Type {
+  Movie = 'movie'
+}
+
+export type Movie = Media & {
   __typename?: 'movie';
   adult?: Maybe<Scalars['Boolean']>;
   backdrop_path?: Maybe<Scalars['String']>;
   genre_ids?: Maybe<Array<Maybe<Scalars['Int']>>>;
-  id?: Maybe<Scalars['Int']>;
   original_language?: Maybe<Scalars['String']>;
   original_title?: Maybe<Scalars['String']>;
   overview?: Maybe<Scalars['String']>;
@@ -191,6 +241,8 @@ export type Movie = {
   video?: Maybe<Scalars['Boolean']>;
   vote_average?: Maybe<Scalars['Float']>;
   vote_count?: Maybe<Scalars['Int']>;
+  id: Scalars['Int'];
+  media_type: Media_Type;
 };
 
 export type Token = {
@@ -200,8 +252,28 @@ export type Token = {
 
 export type User = {
   __typename?: 'user';
+  media?: Maybe<UserMedia>;
   username: Scalars['String'];
   _id: Scalars['MongoID'];
   groupsId: Array<Maybe<Scalars['MongoID']>>;
   groups: Array<Maybe<Group>>;
+};
+
+export type UserMedia = {
+  __typename?: 'userMedia';
+  dislikesId?: Maybe<Array<Maybe<UserMediaDislikesId>>>;
+  likesId?: Maybe<Array<Maybe<UserMediaDislikesId>>>;
+  dislikes?: Maybe<Array<Maybe<Media>>>;
+  likes?: Maybe<Array<Maybe<Media>>>;
+};
+
+export type UserMediaDislikesId = {
+  __typename?: 'userMediaDislikesId';
+  id?: Maybe<Scalars['Float']>;
+  media_type?: Maybe<Scalars['String']>;
+};
+
+export type UserMediaInput = {
+  dislikesId?: Maybe<MediaInput>;
+  likesId?: Maybe<MediaInput>;
 };
