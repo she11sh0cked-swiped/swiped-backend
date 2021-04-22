@@ -1,5 +1,5 @@
 import { ObjectID } from 'mongodb'
-export type Maybe<T> = T | undefined;
+export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
@@ -132,7 +132,7 @@ export type QueryGroup_FindByIdArgs = {
 
 
 export type QueryMedia_FindByIdsArgs = {
-  media: Array<MediaInput>;
+  media: Array<MediaKeyInput>;
 };
 
 export type RuntimeError = ErrorInterface & {
@@ -157,7 +157,7 @@ export type UpdateByIdgroupPayload = {
   error?: Maybe<ErrorInterface>;
 };
 
-export type UpdateByIdmediaInput = {
+export type UpdateByIdmediaKeyInput = {
   id: Scalars['Int'];
   media_type: Media_Type;
 };
@@ -168,8 +168,8 @@ export type UpdateByIduserInput = {
 };
 
 export type UpdateByIduserMediaInput = {
-  dislikesId?: Maybe<UpdateByIdmediaInput>;
-  likesId?: Maybe<UpdateByIdmediaInput>;
+  dislikesId?: Maybe<Array<Maybe<UpdateByIdmediaKeyInput>>>;
+  likesId?: Maybe<Array<Maybe<UpdateByIdmediaKeyInput>>>;
 };
 
 export type UpdateByIduserPayload = {
@@ -216,36 +216,51 @@ export type Group = {
 export type Match = {
   __typename?: 'match';
   count?: Maybe<Scalars['Int']>;
-  media?: Maybe<Media>;
+  media: Media;
 };
 
 export type Media = {
+  backdrop_path?: Maybe<Scalars['String']>;
+  genre_ids?: Maybe<Array<Maybe<Scalars['Int']>>>;
+  original_language?: Maybe<Scalars['String']>;
+  overview?: Maybe<Scalars['String']>;
+  popularity?: Maybe<Scalars['Float']>;
+  poster_path?: Maybe<Scalars['String']>;
+  vote_average?: Maybe<Scalars['Float']>;
+  vote_count?: Maybe<Scalars['Int']>;
   id: Scalars['Int'];
   media_type: Media_Type;
 };
 
-export type MediaInput = {
+export type MediaKey = {
+  __typename?: 'mediaKey';
+  id: Scalars['Int'];
+  media_type: Media_Type;
+};
+
+export type MediaKeyInput = {
   id: Scalars['Int'];
   media_type: Media_Type;
 };
 
 export enum Media_Type {
-  Movie = 'movie'
+  Movie = 'movie',
+  Tv = 'tv'
 }
 
 export type Movie = Media & {
   __typename?: 'movie';
   adult?: Maybe<Scalars['Boolean']>;
-  backdrop_path?: Maybe<Scalars['String']>;
-  genre_ids?: Maybe<Array<Maybe<Scalars['Int']>>>;
-  original_language?: Maybe<Scalars['String']>;
   original_title?: Maybe<Scalars['String']>;
-  overview?: Maybe<Scalars['String']>;
-  popularity?: Maybe<Scalars['Float']>;
-  poster_path?: Maybe<Scalars['String']>;
   release_date?: Maybe<Scalars['String']>;
   title?: Maybe<Scalars['String']>;
   video?: Maybe<Scalars['Boolean']>;
+  backdrop_path?: Maybe<Scalars['String']>;
+  genre_ids?: Maybe<Array<Maybe<Scalars['Int']>>>;
+  original_language?: Maybe<Scalars['String']>;
+  overview?: Maybe<Scalars['String']>;
+  popularity?: Maybe<Scalars['Float']>;
+  poster_path?: Maybe<Scalars['String']>;
   vote_average?: Maybe<Scalars['Float']>;
   vote_count?: Maybe<Scalars['Int']>;
   id: Scalars['Int'];
@@ -257,30 +272,42 @@ export type Token = {
   token: Scalars['String'];
 };
 
+export type Tv = Media & {
+  __typename?: 'tv';
+  first_air_date?: Maybe<Scalars['String']>;
+  name?: Maybe<Scalars['String']>;
+  origin_country?: Maybe<Scalars['String']>;
+  original_name?: Maybe<Scalars['String']>;
+  backdrop_path?: Maybe<Scalars['String']>;
+  genre_ids?: Maybe<Array<Maybe<Scalars['Int']>>>;
+  original_language?: Maybe<Scalars['String']>;
+  overview?: Maybe<Scalars['String']>;
+  popularity?: Maybe<Scalars['Float']>;
+  poster_path?: Maybe<Scalars['String']>;
+  vote_average?: Maybe<Scalars['Float']>;
+  vote_count?: Maybe<Scalars['Int']>;
+  id: Scalars['Int'];
+  media_type: Media_Type;
+};
+
 export type User = {
   __typename?: 'user';
-  media?: Maybe<UserMedia>;
   username: Scalars['String'];
   _id: Scalars['MongoID'];
+  media: UserMedia;
   groupsId: Array<Maybe<Scalars['MongoID']>>;
   groups: Array<Maybe<Group>>;
 };
 
 export type UserMedia = {
   __typename?: 'userMedia';
-  dislikesId?: Maybe<Array<Maybe<UserMediaDislikesId>>>;
-  likesId?: Maybe<Array<Maybe<UserMediaDislikesId>>>;
+  dislikesId: Array<MediaKey>;
+  likesId: Array<MediaKey>;
   dislikes?: Maybe<Array<Maybe<Media>>>;
   likes?: Maybe<Array<Maybe<Media>>>;
 };
 
-export type UserMediaDislikesId = {
-  __typename?: 'userMediaDislikesId';
-  id?: Maybe<Scalars['Float']>;
-  media_type?: Maybe<Scalars['String']>;
-};
-
 export type UserMediaInput = {
-  dislikesId?: Maybe<MediaInput>;
-  likesId?: Maybe<MediaInput>;
+  dislikesId?: Maybe<Array<Maybe<MediaKeyInput>>>;
+  likesId?: Maybe<Array<Maybe<MediaKeyInput>>>;
 };

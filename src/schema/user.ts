@@ -5,16 +5,16 @@ import mongoose from 'mongoose'
 
 import config from '~/config'
 import {
-  MediaInput,
   MutationUser_CreateOneArgs,
   MutationUser_LoginArgs,
   User,
+  UserMedia,
 } from '~/types/api.generated'
 import { TDocument, TResolve } from '~/types/db'
 import { schemaComposer } from '~/utils/graphql'
 import { dbSchemaFactory } from '~/utils/schema'
 
-import media, { findMediaById } from './media'
+import media, { mediaKeyTC } from './media'
 
 type TUserDB = User & {
   password: string
@@ -40,52 +40,50 @@ const user = dbSchemaFactory<TUserDB>(
   },
   {
     compose: {
-      inputType: { removeFields: ['media'] },
-      removeFields: ['password'],
+      removeFields: ['password', 'media'],
     },
   }
 )
 
 const userMediaInputTC = schemaComposer.createInputTC({
   fields: {
-    dislikesId: media.tc.getInputType(),
-    likesId: media.tc.getInputType(),
+    dislikesId: mediaKeyTC.getInputTypeComposer().getTypePlural(),
+    likesId: mediaKeyTC.getInputTypeComposer().getTypePlural(),
   },
   name: 'userMediaInput',
+})
+
+const userMediaTC = schemaComposer.createObjectTC<TDocument<UserMedia>>({
+  fields: {
+    dislikesId: mediaKeyTC.getTypeNonNull().getTypePlural().getTypeNonNull(),
+    likesId: mediaKeyTC.getTypeNonNull().getTypePlural().getTypeNonNull(),
+  },
+  name: 'userMedia',
+})
+
+userMediaTC.addRelation('dislikes', {
+  prepareArgs: {
+    media: (source) => source.toObject().dislikesId,
+  },
+  projection: { dislikesId: 1 },
+  resolver: () => media.getResolver('queries', 'findByIds'),
+})
+
+userMediaTC.addRelation('likes', {
+  prepareArgs: {
+    media: (source) => source.toObject().likesId,
+  },
+  projection: { likesId: 1 },
+  resolver: () => media.getResolver('queries', 'findByIds'),
 })
 
 user.tc.getInputTypeComposer().addFields({
   media: userMediaInputTC,
 })
 
-user.tc
-  .getFieldOTC('media')
-  .addRelation('dislikes', {
-    projection: { dislikesId: 1 },
-    resolve(dbUser) {
-      const dislikes =
-        dbUser.media?.dislikesId?.map<MediaInput>((media) => ({
-          id: media?.id as MediaInput['id'],
-          media_type: media?.media_type as MediaInput['media_type'],
-        })) ?? []
-
-      return Promise.all(dislikes.map(findMediaById))
-    },
-    type: media.tc.getTypePlural(),
-  })
-  .addRelation('likes', {
-    projection: { likesId: 1 },
-    resolve(dbUser) {
-      const likes =
-        dbUser.media?.likesId?.map<MediaInput>((media) => ({
-          id: media?.id as MediaInput['id'],
-          media_type: media?.media_type as MediaInput['media_type'],
-        })) ?? []
-
-      return Promise.all(likes.map(findMediaById))
-    },
-    type: media.tc.getTypePlural(),
-  })
+user.tc.addFields({
+  media: userMediaTC.getTypeNonNull(),
+})
 
 user.addFields('queries', {
   findMe: user.tc.mongooseResolvers

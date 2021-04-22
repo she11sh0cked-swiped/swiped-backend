@@ -4,7 +4,7 @@ import config from '~/config'
 import {
   Media,
   Media_Type,
-  MediaInput,
+  MediaKeyInput,
   QueryMedia_FindByIdsArgs,
 } from '~/types/api.generated'
 import cache, { cachedCall } from '~/utils/cache'
@@ -13,39 +13,59 @@ import Schema from '~/utils/schema'
 
 const tmdb = new MovieDb(config.tmdbApiKey)
 
+export const mediaKeyTC = schemaComposer.createObjectTC({
+  fields: {
+    id: 'Int!',
+    media_type: schemaComposer
+      .createEnumTC({
+        name: 'media_type',
+        values: { movie: { value: 'movie' }, tv: { value: 'tv' } },
+      })
+      .getTypeNonNull(),
+  },
+  name: 'mediaKey',
+})
+
 const media = new Schema(
-  schemaComposer.createInterfaceTC<Media>({
-    fields: {
-      id: 'Int!',
-      media_type: schemaComposer
-        .createEnumTC({
-          name: 'media_type',
-          values: { movie: { value: 'movie' } },
-        })
-        .getTypeNonNull(),
-    },
-    name: 'media',
-  })
+  schemaComposer
+    .createInterfaceTC<Media>({
+      fields: {
+        backdrop_path: 'String',
+        genre_ids: '[Int]',
+        original_language: 'String',
+        overview: 'String',
+        popularity: 'Float',
+        poster_path: 'String',
+        vote_average: 'Float',
+        vote_count: 'Int',
+      },
+      name: 'media',
+    })
+    .merge(mediaKeyTC)
 )
 
 const movieTC = schemaComposer
   .createObjectTC({
     fields: {
       adult: 'Boolean',
-      backdrop_path: 'String',
-      genre_ids: '[Int]',
-      original_language: 'String',
       original_title: 'String',
-      overview: 'String',
-      popularity: 'Float',
-      poster_path: 'String',
       release_date: 'String',
       title: 'String',
       video: 'Boolean',
-      vote_average: 'Float',
-      vote_count: 'Int',
     },
     name: 'movie',
+  })
+  .merge(media.tc)
+
+const tvTC = schemaComposer
+  .createObjectTC({
+    fields: {
+      first_air_date: 'String',
+      name: 'String',
+      origin_country: 'String',
+      original_name: 'String',
+    },
+    name: 'tv',
   })
   .merge(media.tc)
 
@@ -54,14 +74,19 @@ media.tc.addTypeResolver<Media>(
   (value) => value.media_type === Media_Type.Movie
 )
 
-function mediaInputToCacheKey(mediaInput: MediaInput) {
-  return JSON.stringify(mediaInput)
+media.tc.addTypeResolver<Media>(
+  tvTC,
+  (value) => value.media_type === Media_Type.Tv
+)
+
+function mediaKeyToCacheKey(mediaKey: MediaKeyInput) {
+  return JSON.stringify(mediaKey)
 }
 
-function cacheMedia(media: MediaInput[]) {
+function cacheMedia(media: Media[]) {
   cache.mset(
     media.map((val) => ({
-      key: mediaInputToCacheKey({
+      key: mediaKeyToCacheKey({
         id: val.id,
         media_type: val.media_type,
       }),
@@ -70,19 +95,22 @@ function cacheMedia(media: MediaInput[]) {
   )
 }
 
-export async function findMediaById(mediaInput: MediaInput): Promise<Media> {
-  const cacheKey = mediaInputToCacheKey(mediaInput)
+export async function findMediaById(mediaKey: MediaKeyInput): Promise<Media> {
+  const cacheKey = mediaKeyToCacheKey(mediaKey)
 
   let response = cache.get<Media>(cacheKey)
 
   if (response == null) {
     let result
-    switch (mediaInput.media_type) {
+    switch (mediaKey.media_type) {
       case Media_Type.Movie:
-        result = await tmdb.movieInfo({ id: mediaInput.id })
+        result = await tmdb.movieInfo({ id: mediaKey.id })
+        break
+      case Media_Type.Tv:
+        result = await tmdb.tvInfo({ id: mediaKey.id })
         break
     }
-    response = { ...result, ...mediaInput }
+    response = { ...result, ...mediaKey }
     cache.set(cacheKey, response)
   }
 
@@ -93,7 +121,7 @@ media.addFields('queries', {
   findByIds: schemaComposer.createResolver<undefined, QueryMedia_FindByIdsArgs>(
     {
       args: {
-        media: media.tc
+        media: mediaKeyTC
           .getInputTypeComposer()
           .getTypeNonNull()
           .getTypePlural()
@@ -120,7 +148,16 @@ media.addFields('queries', {
         media_type: Media_Type.Movie,
       }))
 
-      const recommendations = [...movies]
+      const discoverTv =
+        (await cachedCall(tmdb.discoverTv.bind(tmdb))).results ?? []
+
+      const tvs = [...discoverTv].map((tv) => ({
+        ...tv,
+        id: tv.id ?? -1,
+        media_type: Media_Type.Tv,
+      }))
+
+      const recommendations = [...movies, ...tvs]
 
       cacheMedia(recommendations)
 

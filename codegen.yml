@@ -4,8 +4,6 @@ config:
 
 generates:
   src/types/api.generated.ts:
-    config:
-      maybeValue: "T | undefined"
     plugins:
       - add:
           content: import { ObjectID } from 'mongodb'

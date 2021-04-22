@@ -47,7 +47,7 @@ group.tc.addRelation('members', {
 const matchTC = schemaComposer.createObjectTC({
   fields: {
     count: 'Int',
-    media: media.tc,
+    media: media.tc.getTypeNonNull(),
   },
   name: 'match',
 })
@@ -60,7 +60,7 @@ group.tc.addRelation('matches', {
       .resolve({ args: { _ids: dbGroup.membersId } })) as TDocument<User>[]
 
     const mediaToCountMapping = members
-      .flatMap((member) => member.media?.dislikesId)
+      .flatMap((member) => member.media.likesId)
       .reduce((mapping, media) => {
         const key = JSON.stringify(media)
 
