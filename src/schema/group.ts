@@ -8,8 +8,10 @@ import {
   User,
 } from '~/types/api.generated'
 import { TDocument, TResolve } from '~/types/db'
+import { schemaComposer } from '~/utils/graphql'
 import { dbSchemaFactory } from '~/utils/schema'
 
+import media, { findMediaById } from './media'
 import user from './user'
 
 const group = dbSchemaFactory<Group>(
@@ -40,6 +42,45 @@ group.tc.addRelation('members', {
   },
   projection: { membersId: 1 },
   resolver: () => user.tc.mongooseResolvers.dataLoaderMany(),
+})
+
+const matchTC = schemaComposer.createObjectTC({
+  fields: {
+    count: 'Int',
+    media: media.tc,
+  },
+  name: 'match',
+})
+
+group.tc.addRelation('matches', {
+  projection: { membersId: 1 },
+  async resolve(dbGroup) {
+    const members = (await user.tc.mongooseResolvers
+      .findByIds()
+      .resolve({ args: { _ids: dbGroup.membersId } })) as TDocument<User>[]
+
+    const mediaToCountMapping = members
+      .flatMap((member) => member.media?.dislikesId)
+      .reduce((mapping, media) => {
+        const key = JSON.stringify(media)
+
+        if (mapping[key] == null) mapping[key] = 1
+        else mapping[key] += 1
+
+        return mapping
+      }, {} as Record<string, number>)
+
+    const result = Object.entries(mediaToCountMapping)
+      .map(([mediaString, count]) => ({ count, mediaString }))
+      .filter(({ count }) => count > 1)
+      .map(async ({ count, mediaString }) => ({
+        count,
+        media: await findMediaById(JSON.parse(mediaString)),
+      }))
+
+    return Promise.all(result)
+  },
+  type: matchTC.getTypeNonNull().getTypePlural().getTypeNonNull(),
 })
 
 group.addFields('queries', {

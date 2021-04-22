@@ -210,6 +210,13 @@ export type Group = {
   _id: Scalars['MongoID'];
   owner?: Maybe<User>;
   members: Array<Maybe<User>>;
+  matches: Array<Match>;
+};
+
+export type Match = {
+  __typename?: 'match';
+  count?: Maybe<Scalars['Int']>;
+  media?: Maybe<Media>;
 };
 
 export type Media = {
