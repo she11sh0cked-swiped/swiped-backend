@@ -75,6 +75,7 @@ group.tc.addRelation('matches', {
 
     const result = Object.entries(matches)
       .map(([mediaString, count]) => ({ count, mediaString }))
+      .filter(({ count }) => count > 1)
       .map(async ({ count, mediaString }) => ({
         count,
         media: (await media.getResolver('queries', 'findById').resolve({
