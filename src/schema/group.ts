@@ -3,6 +3,8 @@ import { Types } from 'mongoose'
 
 import {
   Group,
+  Media,
+  MediaKey,
   MutationGroup_JoinByIdArgs,
   MutationGroup_LeaveByIdArgs,
   User,
@@ -11,7 +13,7 @@ import { TDocument, TResolve } from '~/types/db'
 import { schemaComposer } from '~/utils/graphql'
 import { dbSchemaFactory } from '~/utils/schema'
 
-import media, { findMediaById } from './media'
+import media from './media'
 import user from './user'
 
 const group = dbSchemaFactory<Group>(
@@ -54,15 +56,17 @@ const matchTC = schemaComposer.createObjectTC({
 
 group.tc.addRelation('matches', {
   projection: { membersId: 1 },
-  async resolve(dbGroup) {
+  resolve: async (dbGroup) => {
     const members = (await user.tc.mongooseResolvers
       .findByIds()
       .resolve({ args: { _ids: dbGroup.membersId } })) as TDocument<User>[]
 
-    const mediaToCountMapping = members
-      .flatMap((member) => member.media.likesId)
-      .reduce((mapping, media) => {
-        const key = JSON.stringify(media)
+    const votes = members.flatMap((member) => member.votes)
+
+    const matches = votes
+      .filter((vote) => vote.like)
+      .reduce((mapping, vote) => {
+        const key = JSON.stringify(vote.mediaId)
 
         if (mapping[key] == null) mapping[key] = 1
         else mapping[key] += 1
@@ -70,12 +74,15 @@ group.tc.addRelation('matches', {
         return mapping
       }, {} as Record<string, number>)
 
-    const result = Object.entries(mediaToCountMapping)
+    const result = Object.entries(matches)
       .map(([mediaString, count]) => ({ count, mediaString }))
-      .filter(({ count }) => count > 1)
       .map(async ({ count, mediaString }) => ({
         count,
-        media: await findMediaById(JSON.parse(mediaString)),
+        media: (await media
+          .getResolver('queries', 'findById')
+          .resolve({
+            args: { media: JSON.parse(mediaString) as MediaKey },
+          })) as Media,
       }))
 
     return Promise.all(result)

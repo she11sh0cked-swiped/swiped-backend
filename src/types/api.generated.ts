@@ -33,7 +33,7 @@ export type CreateOnegroupPayload = {
 
 export type CreateOneuserInput = {
   username: Scalars['String'];
-  media?: Maybe<UserMediaInput>;
+  votes?: Maybe<Array<Maybe<UserVotesInput>>>;
 };
 
 export type CreateOneuserPayload = {
@@ -121,6 +121,7 @@ export type Query = {
   __typename?: 'Query';
   user_findMe?: Maybe<User>;
   group_findById?: Maybe<Group>;
+  media_findById?: Maybe<Media>;
   media_findByIds?: Maybe<Array<Maybe<Media>>>;
   media_recommendations?: Maybe<Array<Maybe<Media>>>;
 };
@@ -128,6 +129,11 @@ export type Query = {
 
 export type QueryGroup_FindByIdArgs = {
   _id: Scalars['MongoID'];
+};
+
+
+export type QueryMedia_FindByIdArgs = {
+  media: MediaKeyInput;
 };
 
 
@@ -157,19 +163,9 @@ export type UpdateByIdgroupPayload = {
   error?: Maybe<ErrorInterface>;
 };
 
-export type UpdateByIdmediaKeyInput = {
-  id: Scalars['Int'];
-  media_type: Media_Type;
-};
-
 export type UpdateByIduserInput = {
   username?: Maybe<Scalars['String']>;
-  media?: Maybe<UpdateByIduserMediaInput>;
-};
-
-export type UpdateByIduserMediaInput = {
-  dislikesId?: Maybe<Array<Maybe<UpdateByIdmediaKeyInput>>>;
-  likesId?: Maybe<Array<Maybe<UpdateByIdmediaKeyInput>>>;
+  votes?: Maybe<Array<Maybe<UpdateByIduserVotesInput>>>;
 };
 
 export type UpdateByIduserPayload = {
@@ -180,6 +176,16 @@ export type UpdateByIduserPayload = {
   record?: Maybe<User>;
   /** Error that may occur during operation. If you request this field in GraphQL query, you will receive typed error in payload; otherwise error will be provided in root `errors` field of GraphQL response. */
   error?: Maybe<ErrorInterface>;
+};
+
+export type UpdateByIduserVotesInput = {
+  like?: Maybe<Scalars['Boolean']>;
+  mediaId?: Maybe<UpdateByIduserVotesMediaIdInput>;
+};
+
+export type UpdateByIduserVotesMediaIdInput = {
+  id?: Maybe<Scalars['Float']>;
+  media_type?: Maybe<Scalars['String']>;
 };
 
 export type ValidationError = ErrorInterface & {
@@ -293,21 +299,25 @@ export type Tv = Media & {
 export type User = {
   __typename?: 'user';
   username: Scalars['String'];
+  votes: Array<Vote>;
   _id: Scalars['MongoID'];
-  media: UserMedia;
   groupsId: Array<Maybe<Scalars['MongoID']>>;
   groups: Array<Maybe<Group>>;
 };
 
-export type UserMedia = {
-  __typename?: 'userMedia';
-  dislikesId: Array<MediaKey>;
-  likesId: Array<MediaKey>;
-  dislikes?: Maybe<Array<Maybe<Media>>>;
-  likes?: Maybe<Array<Maybe<Media>>>;
+export type UserVotesInput = {
+  like?: Maybe<Scalars['Boolean']>;
+  mediaId?: Maybe<UserVotesMediaIdInput>;
 };
 
-export type UserMediaInput = {
-  dislikesId?: Maybe<Array<Maybe<MediaKeyInput>>>;
-  likesId?: Maybe<Array<Maybe<MediaKeyInput>>>;
+export type UserVotesMediaIdInput = {
+  id?: Maybe<Scalars['Float']>;
+  media_type?: Maybe<Scalars['String']>;
+};
+
+export type Vote = {
+  __typename?: 'vote';
+  like: Scalars['Boolean'];
+  mediaId: MediaKey;
+  media?: Maybe<Media>;
 };

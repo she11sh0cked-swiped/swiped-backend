@@ -8,7 +8,7 @@ import {
   MutationUser_CreateOneArgs,
   MutationUser_LoginArgs,
   User,
-  UserMedia,
+  Vote,
 } from '~/types/api.generated'
 import { TDocument, TResolve } from '~/types/db'
 import { schemaComposer } from '~/utils/graphql'
@@ -20,10 +20,13 @@ type TUserDB = User & {
   password: string
 }
 
-const mediaSchema = new mongoose.Schema(
+const voteSchema = new mongoose.Schema(
   {
-    id: mongoose.SchemaTypes.Number,
-    media_type: mongoose.SchemaTypes.String,
+    like: mongoose.SchemaTypes.Boolean,
+    mediaId: {
+      id: mongoose.SchemaTypes.Number,
+      media_type: mongoose.SchemaTypes.String,
+    },
   },
   { _id: false }
 )
@@ -31,58 +34,37 @@ const mediaSchema = new mongoose.Schema(
 const user = dbSchemaFactory<TUserDB>(
   'user',
   {
-    media: {
-      dislikesId: { default: [], type: [mediaSchema] },
-      likesId: { default: [], type: [mediaSchema] },
-    },
     password: { required: true, type: String },
     username: { required: true, type: String, unique: true },
+    votes: { default: [], type: [voteSchema] },
   },
   {
     compose: {
-      removeFields: ['password', 'media'],
+      removeFields: ['password'],
     },
   }
 )
 
-const userMediaInputTC = schemaComposer.createInputTC({
+const voteTC = schemaComposer.createObjectTC({
   fields: {
-    dislikesId: mediaKeyTC.getInputTypeComposer().getTypePlural(),
-    likesId: mediaKeyTC.getInputTypeComposer().getTypePlural(),
+    like: 'Boolean!',
+    mediaId: mediaKeyTC.getTypeNonNull(),
   },
-  name: 'userMediaInput',
+  name: 'vote',
 })
 
-const userMediaTC = schemaComposer.createObjectTC<TDocument<UserMedia>>({
-  fields: {
-    dislikesId: mediaKeyTC.getTypeNonNull().getTypePlural().getTypeNonNull(),
-    likesId: mediaKeyTC.getTypeNonNull().getTypePlural().getTypeNonNull(),
-  },
-  name: 'userMedia',
-})
-
-userMediaTC.addRelation('dislikes', {
+voteTC.addRelation('media', {
   prepareArgs: {
-    media: (source) => source.toObject().dislikesId,
+    media: (source: TDocument<Vote>) => {
+      return source.toObject().mediaId
+    },
   },
-  projection: { dislikesId: 1 },
-  resolver: () => media.getResolver('queries', 'findByIds'),
-})
-
-userMediaTC.addRelation('likes', {
-  prepareArgs: {
-    media: (source) => source.toObject().likesId,
-  },
-  projection: { likesId: 1 },
-  resolver: () => media.getResolver('queries', 'findByIds'),
-})
-
-user.tc.getInputTypeComposer().addFields({
-  media: userMediaInputTC,
+  projection: { mediaId: 1 },
+  resolver: () => media.getResolver('queries', 'findById'),
 })
 
 user.tc.addFields({
-  media: userMediaTC.getTypeNonNull(),
+  votes: voteTC.getTypeNonNull().getTypePlural().getTypeNonNull(),
 })
 
 user.addFields('queries', {

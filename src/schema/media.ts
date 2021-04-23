@@ -118,6 +118,17 @@ export async function findMediaById(mediaKey: MediaKeyInput): Promise<Media> {
 }
 
 media.addFields('queries', {
+  findById: schemaComposer.createResolver<undefined>({
+    args: {
+      media: mediaKeyTC.getInputTypeComposer().getTypeNonNull(),
+    },
+    kind: 'query',
+    name: 'media_findById',
+    resolve({ args: { media } }): Promise<Media> {
+      return findMediaById(media)
+    },
+    type: media.tc,
+  }),
   findByIds: schemaComposer.createResolver<undefined, QueryMedia_FindByIdsArgs>(
     {
       args: {
