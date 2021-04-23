@@ -67,7 +67,7 @@ export type Mutation = {
   user_createOne?: Maybe<CreateOneuserPayload>;
   user_login?: Maybe<Token>;
   /** Update one document: 1) Retrieve one document by findById. 2) Apply updates to mongoose document. 3) Mongoose applies defaults, setters, hooks and validation. 4) And save it. */
-  user_updateMe?: Maybe<UpdateByIduserPayload>;
+  user_vote?: Maybe<UpdateByIduserPayload>;
   /** Create one document with mongoose defaults, setters, hooks and validation */
   group_createOne?: Maybe<CreateOnegroupPayload>;
   /** Update one document: 1) Retrieve one document by findById. 2) Apply updates to mongoose document. 3) Mongoose applies defaults, setters, hooks and validation. 4) And save it. */
@@ -92,8 +92,8 @@ export type MutationUser_LoginArgs = {
 };
 
 
-export type MutationUser_UpdateMeArgs = {
-  record: UpdateByIduserInput;
+export type MutationUser_VoteArgs = {
+  votes: Array<UserVotesInput>;
 };
 
 
@@ -141,6 +141,11 @@ export type QueryMedia_FindByIdsArgs = {
   media: Array<MediaKeyInput>;
 };
 
+
+export type QueryMedia_RecommendationsArgs = {
+  count: Scalars['Int'];
+};
+
 export type RuntimeError = ErrorInterface & {
   __typename?: 'RuntimeError';
   /** Runtime error message */
@@ -163,11 +168,6 @@ export type UpdateByIdgroupPayload = {
   error?: Maybe<ErrorInterface>;
 };
 
-export type UpdateByIduserInput = {
-  username?: Maybe<Scalars['String']>;
-  votes?: Maybe<Array<Maybe<UpdateByIduserVotesInput>>>;
-};
-
 export type UpdateByIduserPayload = {
   __typename?: 'UpdateByIduserPayload';
   /** Document ID */
@@ -176,16 +176,6 @@ export type UpdateByIduserPayload = {
   record?: Maybe<User>;
   /** Error that may occur during operation. If you request this field in GraphQL query, you will receive typed error in payload; otherwise error will be provided in root `errors` field of GraphQL response. */
   error?: Maybe<ErrorInterface>;
-};
-
-export type UpdateByIduserVotesInput = {
-  like?: Maybe<Scalars['Boolean']>;
-  mediaId?: Maybe<UpdateByIduserVotesMediaIdInput>;
-};
-
-export type UpdateByIduserVotesMediaIdInput = {
-  id?: Maybe<Scalars['Float']>;
-  media_type?: Maybe<Scalars['String']>;
 };
 
 export type ValidationError = ErrorInterface & {

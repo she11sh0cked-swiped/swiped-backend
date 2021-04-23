@@ -7,14 +7,13 @@ import config from '~/config'
 import {
   MutationUser_CreateOneArgs,
   MutationUser_LoginArgs,
+  MutationUser_VoteArgs,
   User,
   Vote,
 } from '~/types/api.generated'
 import { TDocument, TResolve } from '~/types/db'
 import { schemaComposer } from '~/utils/graphql'
 import { dbSchemaFactory } from '~/utils/schema'
-
-import media, { mediaKeyTC } from './media'
 
 type TUserDB = User & {
   password: string
@@ -44,28 +43,6 @@ const user = dbSchemaFactory<TUserDB>(
     },
   }
 )
-
-const voteTC = schemaComposer.createObjectTC({
-  fields: {
-    like: 'Boolean!',
-    mediaId: mediaKeyTC.getTypeNonNull(),
-  },
-  name: 'vote',
-})
-
-voteTC.addRelation('media', {
-  prepareArgs: {
-    media: (source: TDocument<Vote>) => {
-      return source.toObject().mediaId
-    },
-  },
-  projection: { mediaId: 1 },
-  resolver: () => media.getResolver('queries', 'findById'),
-})
-
-user.tc.addFields({
-  votes: voteTC.getTypeNonNull().getTypePlural().getTypeNonNull(),
-})
 
 user.addFields('queries', {
   findMe: user.tc.mongooseResolvers
@@ -137,14 +114,40 @@ user.addFields('mutations', {
       name: 'token',
     }),
   }),
-  updateMe: user.tc.mongooseResolvers
+  vote: user.tc.mongooseResolvers
     .updateById()
     .wrap((resolver) => {
       resolver.removeArg('_id')
+      resolver.removeArg('record')
+      resolver.addArgs({
+        votes: user.tc
+          .getFieldOTC('votes')
+          .getInputTypeComposer()
+          .getTypeNonNull()
+          .getTypePlural()
+          .getTypeNonNull(),
+      })
       return resolver
     })
-    .wrapResolve<undefined>((next) => (rp) => {
+    .wrapResolve<
+      undefined,
+      MutationUser_VoteArgs & { _id: string; record: any }
+    >((next) => (rp) => {
       rp.args._id = rp.context.userId
+      rp.args.record = {}
+
+      rp.beforeRecordMutate = (doc: TDocument<TUserDB>) => {
+        const {
+          args: { votes },
+        } = rp
+
+        if (doc == null) return
+
+        doc.votes.push(...(votes as Vote[]))
+
+        return doc
+      }
+
       return next(rp) as TResolve<TUserDB>
     }),
 })

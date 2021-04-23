@@ -21,7 +21,6 @@ const group = dbSchemaFactory<Group>(
   {
     membersId: {
       default: [],
-      index: true,
       type: [{ ref: user.name, type: Types.ObjectId }],
     },
     name: { required: true, type: String },
@@ -78,11 +77,9 @@ group.tc.addRelation('matches', {
       .map(([mediaString, count]) => ({ count, mediaString }))
       .map(async ({ count, mediaString }) => ({
         count,
-        media: (await media
-          .getResolver('queries', 'findById')
-          .resolve({
-            args: { media: JSON.parse(mediaString) as MediaKey },
-          })) as Media,
+        media: (await media.getResolver('queries', 'findById').resolve({
+          args: { media: JSON.parse(mediaString) as MediaKey },
+        })) as Media,
       }))
 
     return Promise.all(result)
